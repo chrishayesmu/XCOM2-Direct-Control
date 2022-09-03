@@ -1,0 +1,4 @@
+`define DC_LOG(msg, cond) `LOG(string(default.Class) $ ": " $ `msg, `cond, 'DirectControl')
+
+`define DC_CFG_GetValue(DefaultVal, ConfigVal) ( (class'DirectControlConfigDefaults'.default.ConfigVersion > class'DirectControlConfig'.default.ConfigVersion) ? `DefaultVal : `ConfigVal)
+`define DC_CFG(CfgName) (`DC_CFG_GetValue(class'DirectControlConfigDefaults'.default.`CfgName, class'DirectControlConfig'.default.`CfgName))
