@@ -14,8 +14,6 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
 	local bool bUnitIsSurprised;
 	local X2TacticalGameRuleset Rules;
 
-    // DC: would prefer not to copy this entire method, but for some reason our CanScamper doesn't get called unless I do so.
-
 	History = `XCOMHISTORY;
 
 	if( !bProcessedScamper ) // Only allow scamper once.
@@ -31,95 +29,102 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
 		}
 
 		NumScamperers = Scamperers.Length;
-		if( NumScamperers > 0 )
-		{
-			//////////////////////////////////////////////////////////////
-			// Kick off the BT scamper actions
 
-			//Find the AI player data object
-			AIPlayer = XGAIPlayer(`BATTLE.GetAIPlayer());
-			`assert(AIPlayer != none);
-			TargetStateObject = XComGameState_Unit(History.GetGameStateForObjectID(RevealInstigatorUnitObjectID));
+        // DC: if there's no one eligible to scamper, we still need to mark the group as having scampered, or other game logic can break
+        if (NumScamperers == 0)
+        {
+            `DC_LOG("No scamperers found in this group: submitting fake scamper state. Group state is " $ self);
+            SubmitFakeScamperState();
+            return;
+        }
 
-			// Give the units their scamper action points
-			NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Add Scamper Action Points");
-			foreach Scamperers(Ref)
-			{
-				NewUnitState = XComGameState_Unit(NewGameState.ModifyStateObject(class'XComGameState_Unit', Ref.ObjectID));
-				if( NewUnitState.IsAbleToAct() )
-				{
-					NewUnitState.ActionPoints.Length = 0;
-					NumActionPoints = NewUnitState.GetNumScamperActionPoints();
-					for (i = 0; i < NumActionPoints; ++i)
-					{
-						NewUnitState.ActionPoints.AddItem(class'X2CharacterTemplateManager'.default.StandardActionPoint); //Give the AI one free action point to use.
-					}
+        //////////////////////////////////////////////////////////////
+        // Kick off the BT scamper actions
 
-					if (NewUnitState.GetMyTemplate().OnRevealEventFn != none)
-					{
-						NewUnitState.GetMyTemplate().OnRevealEventFn(NewUnitState);
-					}
-				}
-				else
-				{
-					NewGameState.PurgeGameStateForObjectID(NewUnitState.ObjectID);
-				}
-			}
+        //Find the AI player data object
+        AIPlayer = XGAIPlayer(`BATTLE.GetAIPlayer());
+        `assert(AIPlayer != none);
+        TargetStateObject = XComGameState_Unit(History.GetGameStateForObjectID(RevealInstigatorUnitObjectID));
 
-			NewGroupState = XComGameState_AIGroup(NewGameState.ModifyStateObject(class'XComGameState_AIGroup', ObjectID));
-			NewGroupState.bProcessedScamper = true;
-			NewGroupState.bPendingScamper = true;
-			NewGroupState.SpecialRevealType = InSpecialRevealType;
-			NewGroupState.bSummoningSicknessCleared = false;
+        // Give the units their scamper action points
+        NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Add Scamper Action Points");
+        foreach Scamperers(Ref)
+        {
+            NewUnitState = XComGameState_Unit(NewGameState.ModifyStateObject(class'XComGameState_Unit', Ref.ObjectID));
+            if( NewUnitState.IsAbleToAct() )
+            {
+                NewUnitState.ActionPoints.Length = 0;
+                NumActionPoints = NewUnitState.GetNumScamperActionPoints();
+                for (i = 0; i < NumActionPoints; ++i)
+                {
+                    NewUnitState.ActionPoints.AddItem(class'X2CharacterTemplateManager'.default.StandardActionPoint); //Give the AI one free action point to use.
+                }
 
-			if(NewGameState.GetNumGameStateObjects() > 0)
-			{
-				// Now that we are kicking off a scamper Behavior Tree (latent), we need to handle the scamper clean-up on
-				// an event listener that waits until after the scampering behavior decisions are made.
-				for( Index = 0; Index < NumScamperers; ++Index )
-				{
-					UnitStateObject = XComGameState_Unit(History.GetGameStateForObjectID(Scamperers[Index].ObjectID));
+                if (NewUnitState.GetMyTemplate().OnRevealEventFn != none)
+                {
+                    NewUnitState.GetMyTemplate().OnRevealEventFn(NewUnitState);
+                }
+            }
+            else
+            {
+                NewGameState.PurgeGameStateForObjectID(NewUnitState.ObjectID);
+            }
+        }
 
-					// choose which scampering units should be surprised
-					// randomly choose half to be surprised
-					if(PreviouslyConcealedUnitObjectIDs.Length > 0)
-					{
-						if( UnitStateObject.IsGroupLeader() )
-						{
-							bUnitIsSurprised = false;
-						}
-						else
-						{
-							NumSurprised = NewGroupState.SurprisedScamperUnitIDs.Length;
-							SurprisedChance = (float(NumScamperers) * SURPRISED_SCAMPER_CHANCE - NumSurprised) / float(NumScamperers - Index);
-							bUnitIsSurprised = `SYNC_FRAND() <= SurprisedChance;
-						}
+        // TODO: need to submit a state like this even if we aren't allowing scampers, so abilities work properly
+        NewGroupState = XComGameState_AIGroup(NewGameState.ModifyStateObject(class'XComGameState_AIGroup', ObjectID));
+        NewGroupState.bProcessedScamper = true;
+        NewGroupState.bPendingScamper = true;
+        NewGroupState.SpecialRevealType = InSpecialRevealType;
+        NewGroupState.bSummoningSicknessCleared = false;
 
-						if(bUnitIsSurprised)
-						{
-							NewGroupState.SurprisedScamperUnitIDs.AddItem(Scamperers[Index].ObjectID);
-						}
-					}
+        if(NewGameState.GetNumGameStateObjects() > 0)
+        {
+            // Now that we are kicking off a scamper Behavior Tree (latent), we need to handle the scamper clean-up on
+            // an event listener that waits until after the scampering behavior decisions are made.
+            for( Index = 0; Index < NumScamperers; ++Index )
+            {
+                UnitStateObject = XComGameState_Unit(History.GetGameStateForObjectID(Scamperers[Index].ObjectID));
 
-					AIPlayer.QueueScamperBehavior(UnitStateObject, TargetStateObject, bUnitIsSurprised, Index == 0);
-				}
+                // choose which scampering units should be surprised
+                // randomly choose half to be surprised
+                if(PreviouslyConcealedUnitObjectIDs.Length > 0)
+                {
+                    if( UnitStateObject.IsGroupLeader() )
+                    {
+                        bUnitIsSurprised = false;
+                    }
+                    else
+                    {
+                        NumSurprised = NewGroupState.SurprisedScamperUnitIDs.Length;
+                        SurprisedChance = (float(NumScamperers) * SURPRISED_SCAMPER_CHANCE - NumSurprised) / float(NumScamperers - Index);
+                        bUnitIsSurprised = `SYNC_FRAND() <= SurprisedChance;
+                    }
 
-				// Start Issue #510
-				//
-				// Mods can't use the `OnScamperBegin` event to provide extra action points because it
-				// happens too late, so we fire this custom event here instead.
-				`XEVENTMGR.TriggerEvent('ProcessReflexMove', UnitStateObject, self, NewGameState);
-				// End Issue #510
+                    if(bUnitIsSurprised)
+                    {
+                        NewGroupState.SurprisedScamperUnitIDs.AddItem(Scamperers[Index].ObjectID);
+                    }
+                }
 
-				Rules = `TACTICALRULES;
-				Rules.SubmitGameState(NewGameState);
-				`BEHAVIORTREEMGR.TryUpdateBTQueue();
-			}
-			else
-			{
-				History.CleanupPendingGameState(NewGameState);
-			}
-		}
+                AIPlayer.QueueScamperBehavior(UnitStateObject, TargetStateObject, bUnitIsSurprised, Index == 0);
+            }
+
+            // Start Issue #510
+            //
+            // Mods can't use the `OnScamperBegin` event to provide extra action points because it
+            // happens too late, so we fire this custom event here instead.
+            `XEVENTMGR.TriggerEvent('ProcessReflexMove', UnitStateObject, self, NewGameState);
+            // End Issue #510
+
+            Rules = `TACTICALRULES;
+            Rules.SubmitGameState(NewGameState);
+            `BEHAVIORTREEMGR.TryUpdateBTQueue();
+        }
+        else
+        {
+            History.CleanupPendingGameState(NewGameState);
+        }
 	}
 }
 
@@ -148,4 +153,19 @@ function bool CanScamper(XComGameState_Unit UnitStateObject)
 		  !UnitStateObject.IsUnitAffectedByEffectName(class'X2AbilityTemplateManager'.default.PanickedName) &&
 		  !UnitStateObject.IsUnitAffectedByEffectName(class'X2AbilityTemplateManager'.default.BurrowedName) &&
 	     (`CHEATMGR == None || !`CHEATMGR.bAbortScampers);
+}
+
+private function SubmitFakeScamperState()
+{
+	local XComGameState NewGameState;
+    local XComGameState_AIGroup NewGroupState;
+
+    NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Direct Control: Fake Scamper State");
+
+    NewGroupState = XComGameState_AIGroup(NewGameState.ModifyStateObject(class'XComGameState_AIGroup', ObjectID));
+    NewGroupState.bProcessedScamper = true;
+    NewGroupState.bPendingScamper = false;
+    NewGroupState.bSummoningSicknessCleared = true;
+
+    `TACTICALRULES.SubmitGameState(NewGameState);
 }
