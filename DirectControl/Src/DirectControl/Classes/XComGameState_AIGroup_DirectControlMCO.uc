@@ -71,7 +71,6 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
             }
         }
 
-        // TODO: need to submit a state like this even if we aren't allowing scampers, so abilities work properly
         NewGroupState = XComGameState_AIGroup(NewGameState.ModifyStateObject(class'XComGameState_AIGroup', ObjectID));
         NewGroupState.bProcessedScamper = true;
         NewGroupState.bPendingScamper = true;

@@ -50,6 +50,40 @@ static function XComGameState_Player GetPlayerForTeam(ETeam TeamFlag)
 	return none;
 }
 
+static function bool IsLocalPlayer(ETeam TeamFlag)
+{
+    switch (TeamFlag)
+    {
+        case eTeam_XCom:
+            return true;
+        case eTeam_Alien:
+            return `DC_CFG(bPlayerControlsAlienTurn);
+        case eTeam_TheLost:
+            return `DC_CFG(bPlayerControlsLostTurn);
+        default:
+            return false;
+    }
+}
+
+// Function copied from the XCOM 2 subreddit wiki
+static final function bool IsModActive(name ModName)
+{
+    local XComOnlineEventMgr    EventManager;
+    local int                   Index;
+
+    EventManager = `ONLINEEVENTMGR;
+
+    for (Index = EventManager.GetNumDLC() - 1; Index >= 0; Index--)
+    {
+        if (EventManager.GetDLCNames(Index) == ModName)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static function bool IsUnitSpawnedAsReinforcements(int UnitObjectID)
 {
 	local XComGameStateHistory History;
