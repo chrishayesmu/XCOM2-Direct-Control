@@ -8,10 +8,6 @@ The border that normally shows the limits of a blue/yellow move are not visible 
 
 Since they aren't active, they can't take cover, and they won't see cover icons when hovering cover-adjacent tiles. If moved to a cover-adjacent tile and then activated, they will take cover like normal.
 
-## Buildings don't turn transparent on enemy turns
-
-The cutaway effect that lets you look inside buildings and move around easily only works on XCOM's turn. It is disabled for cinematic reasons during enemy turns.
-
 ## Chosen Assassin is invisible
 
 The Chosen Assassin's cloak hides her from XCOM, and it's still active during the enemy turn. While the enemy player can move the Assassin as normal, you won't be able to see her until she is uncloaked.

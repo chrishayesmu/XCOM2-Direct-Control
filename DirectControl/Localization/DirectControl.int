@@ -1,0 +1,20 @@
+[DirectControlConfig]
+strPageHeader="Direct Control"
+
+strGeneralGroupHeader="General"
+strLabelPlayerControlsAlienTurn="Control Alien Turn"
+strTooltipPlayerControlsAlienTurn="If checked, the player will be in control of alien units during their turn."
+strLabelPlayerControlsUnactivatedAliens="Control Inactive Aliens"
+strTooltipPlayerControlsUnactivatedAliens="If checked, the player will control aliens in unactivated pods, in addition to activated aliens."
+strLabelPlayerControlsLostTurn="Control Lost Turn"
+strTooltipPlayerControlsLostTurn="If checked, the player will be in control of Lost units during their turn."
+strLabelPlayerControlsUnactivatedLost="Control Inactive Lost"
+strTooltipPlayerControlsUnactivatedLost="If checked, the player will control Lost units in unactivated pods, in addition to activated Lost."
+
+strAdventReinforcementsGroupHeader="Submod: ADVENT Reinforcements"
+strLabelAdventReinforcementsEnabled="Enable Submod"
+strTooltipAdventReinforcementsEnabled="If checked, the \"Request Reinforcements\" ability from ADVENT Reinforcements is changed to target a specific tile, rather than calling reinforcements to a random location."
+strLabelAdventReinforcementsRequireLos="Require Squad Vision of Call-in"
+strTooltipAdventReinforcementsRequireLos="If checked, reinforcements can only be called to a tile which the alien team can see. Otherwise, line of sight is not needed."
+strLabelAdventReinforcementsPlacementRange="Call-in Range (meters)"
+strTooltipAdventReinforcementsPlacementRange="If greater than 0, limits the range at which reinforcements can be called in. Otherwise, reinforcements can be placed at any distance."
