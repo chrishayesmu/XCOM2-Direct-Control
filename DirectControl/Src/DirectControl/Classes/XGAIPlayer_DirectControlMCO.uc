@@ -84,14 +84,13 @@ simulated function OnUnitActionPhase_ActionsAvailable(XComGameState_Unit UnitSta
 
 simulated function GatherUnitsToMove()
 {
-    local bool bCachedAllowSelectAll, bIsFullHumanControl;
+    local bool bCachedAllowSelectAll;
     local int Index;
 	local XComGameState_Unit UnitState;
 	local XComGameStateHistory History;
 
 	History = `XCOMHISTORY;
     bCachedAllowSelectAll = `CHEATMGR.bAllowSelectAll;
-    bIsFullHumanControl = IsFullHumanControl();
 
     // We want to use the superclass method to decide how to move unactivated pods, but it will just return immediately
     // if bAllowSelectAll is on, so quickly toggle it off first
@@ -110,25 +109,10 @@ simulated function GatherUnitsToMove()
         UnitState = XComGameState_Unit(History.GetGameStateForObjectID(UnitsToMove[Index].UnitObjectRef.ObjectID));
 
         // Remove any active AI so that the player can move them
-        if (bIsFullHumanControl || !UnitState.IsUnrevealedAI() || UnitState.IsMindControlled())
+        if (class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitState))
         {
             UnitsToMove.Remove(Index, 1);
             Index--;
         }
     }
-}
-
-private function bool IsFullHumanControl()
-{
-    if (`DC_CFG(bPlayerControlsAlienTurn) && `DC_CFG(bPlayerControlsUnactivatedAliens) && m_eTeam == eTeam_Alien)
-    {
-        return true;
-    }
-
-    if (`DC_CFG(bPlayerControlsLostTurn) && `DC_CFG(bPlayerControlsUnactivatedLost) && m_eTeam == eTeam_TheLost)
-    {
-        return true;
-    }
-
-    return false;
 }

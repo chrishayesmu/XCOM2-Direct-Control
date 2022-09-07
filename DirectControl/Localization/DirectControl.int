@@ -10,6 +10,8 @@ strLabelPlayerControlsLostTurn="Control Lost Turn"
 strTooltipPlayerControlsLostTurn="If checked, the player will be in control of Lost units during their turn."
 strLabelPlayerControlsUnactivatedLost="Control Inactive Lost"
 strTooltipPlayerControlsUnactivatedLost="If checked, the player will control Lost units in unactivated pods, in addition to activated Lost."
+strLabelForceControlledUnitsToRun="Force Controlled Units to Run"
+strTooltipForceControlledUnitsToRun="If checked, controlled units will always run even if inactive, saving the long animation time of walking them around manually."
 
 strAdventReinforcementsGroupHeader="Submod: ADVENT Reinforcements"
 strLabelAdventReinforcementsEnabled="Enable Submod"

@@ -2,7 +2,6 @@ class XComTacticalSoundManager_DirectControlMCO extends XComTacticalSoundManager
 
 function EvaluateTacticalMusicState()
 {
-	local X2TacticalGameRuleset Ruleset;
 	local XComGameStateHistory History;
 	local XComGameState_Unit UnitState;
 	local XGUnit Unit;
@@ -13,7 +12,6 @@ function EvaluateTacticalMusicState()
 	local int NumSpecialUnitsEngagedPrevious;
 	local name MusicDynamicOverrideSwitch;
 
-	Ruleset = `TACTICALRULES;
 	History = `XCOMHISTORY;
 
 	//Get the game state representing the local player

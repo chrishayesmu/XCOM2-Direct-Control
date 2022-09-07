@@ -8,6 +8,7 @@ static function array<X2DataTemplate> CreateTemplates()
     `CREATE_X2TEMPLATE(class'CHEventListenerTemplate', Template, 'X2EventListener_DirectControl');
 
     Template.RegisterInTactical = true;
+    Template.AddCHEvent('AbilityActivated', OnAbilityVisualizationBegin_ForceUnitToRun, ELD_OnVisualizationBlockStarted);
     Template.AddCHEvent('PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted);
 	Template.AddCHEvent('OnUnitBeginPlay', OnUnitBeginPlay_CheckForLostSwarms, ELD_OnStateSubmitted);
 	Template.AddCHEvent('OnUnitBeginPlay', OnUnitBeginPlay_VisStarted, ELD_OnVisualizationBlockStarted);
@@ -16,6 +17,56 @@ static function array<X2DataTemplate> CreateTemplates()
     Templates.AddItem(Template);
 
     return Templates;
+}
+
+private static function EventListenerReturn OnAbilityVisualizationBegin_ForceUnitToRun(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
+{
+    local int Index;
+	local array<X2Action> ActionNodes;
+    local X2Action_Move MoveNode;
+    local XComGameState_Ability AbilityState;
+    local XComGameState_Unit UnitState;
+    local XComGameStateVisualizationMgr VisualizationMgr;
+    local XGUnit UnitVisualizer;
+
+    AbilityState = XComGameState_Ability(EventData);
+    UnitState = XComGameState_Unit(EventSource);
+    VisualizationMgr = `XCOMVISUALIZATIONMGR;
+
+    if (AbilityState.GetMyTemplateName() != 'StandardMove')
+    {
+        return ELR_NoInterrupt;
+    }
+
+    if (!`DC_CFG(bForceControlledUnitsToRun))
+    {
+        return ELR_NoInterrupt;
+    }
+
+    // Only make units run if they're being controlled by the player; otherwise they can walk the normal way
+    if (!class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitState))
+    {
+        return ELR_NoInterrupt;
+    }
+
+    // Player units always run, so skip them
+    UnitVisualizer = XGUnit(UnitState.GetVisualizer());
+
+    if (UnitVisualizer == none || !UnitVisualizer.IsAI())
+    {
+        return ELR_NoInterrupt;
+    }
+
+    // Iterate all active movement nodes and force them to run instead of walk
+    VisualizationMgr.GetNodesOfType(VisualizationMgr.VisualizationTree, class'X2Action_Move', ActionNodes, UnitState.GetVisualizer());
+
+    for (Index = 0; Index < ActionNodes.Length; Index++)
+    {
+        MoveNode = X2Action_Move(ActionNodes[Index]);
+        MoveNode.bShouldUseWalkAnim = false;
+    }
+
+    return ELR_NoInterrupt;
 }
 
 private static function EventListenerReturn OnUnitBeginPlay_CheckForLostSwarms(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)

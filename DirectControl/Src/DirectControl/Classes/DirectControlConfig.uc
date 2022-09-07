@@ -13,6 +13,8 @@ var config bool bPlayerControlsUnactivatedAliens;
 var config bool bPlayerControlsLostTurn;
 var config bool bPlayerControlsUnactivatedLost;
 
+var config bool bForceControlledUnitsToRun;
+
 /////////////////////////////////////////////////
 // Submod config: ADVENT Reinforcements
 /////////////////////////////////////////////////
@@ -32,6 +34,8 @@ var const localized string strLabelPlayerControlsLostTurn;
 var const localized string strTooltipPlayerControlsLostTurn;
 var const localized string strLabelPlayerControlsUnactivatedLost;
 var const localized string strTooltipPlayerControlsUnactivatedLost;
+var const localized string strLabelForceControlledUnitsToRun;
+var const localized string strTooltipForceControlledUnitsToRun;
 
 var const localized string strAdventReinforcementsGroupHeader;
 var const localized string strLabelAdventReinforcementsEnabled;
@@ -69,6 +73,7 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedAliens), strLabelPlayerControlsUnactivatedAliens, strTooltipPlayerControlsUnactivatedAliens, bPlayerControlsUnactivatedAliens, PlayerControlsUnactivatedAliensTurnSaveHandler);
     Group.AddCheckbox(nameof(bPlayerControlsLostTurn),          strLabelPlayerControlsLostTurn,          strTooltipPlayerControlsLostTurn,          bPlayerControlsLostTurn,          PlayerControlsLostTurnSaveHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedLost),   strLabelPlayerControlsUnactivatedLost,   strTooltipPlayerControlsUnactivatedLost,   bPlayerControlsUnactivatedLost,   PlayerControlsUnactivatedLostTurnSaveHandler);
+    Group.AddCheckbox(nameof(bForceControlledUnitsToRun),         strLabelForceControlledUnitsToRun,         strTooltipForceControlledUnitsToRun,         bForceControlledUnitsToRun,         ForceInactiveUnitsToRunSaveHandler);
 
     if (class'DirectControlUtils'.static.IsModActive('WOTCAdventReinforcements'))
     {
@@ -91,6 +96,14 @@ private function AddSubmodSettings_AdventReinforcements(MCM_API_SettingsPage Pag
 private function LoadSavedSettings()
 {
     bPlayerControlsAlienTurn = `DC_CFG(bPlayerControlsAlienTurn);
+    bPlayerControlsUnactivatedAliens = `DC_CFG(bPlayerControlsUnactivatedAliens);
+    bPlayerControlsLostTurn = `DC_CFG(bPlayerControlsLostTurn);
+    bPlayerControlsUnactivatedLost = `DC_CFG(bPlayerControlsUnactivatedLost);
+    bForceControlledUnitsToRun = `DC_CFG(bForceControlledUnitsToRun);
+
+    bAdventReinforcements_EnableSubmod = `DC_CFG(bAdventReinforcements_EnableSubmod);
+    fAdventReinforcements_ReinforcementPlacementRange = `DC_CFG(fAdventReinforcements_ReinforcementPlacementRange);
+    bAdventReinforcements_RequireSquadLosToTargetTile = `DC_CFG(bAdventReinforcements_RequireSquadLosToTargetTile);
 
     if (class'DirectControlConfigDefaults'.default.ConfigVersion > default.ConfigVersion)
     {
@@ -111,6 +124,7 @@ private function SaveButtonClicked(MCM_API_SettingsPage Page)
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedAliensTurnSaveHandler, bPlayerControlsUnactivatedAliens);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsLostTurnSaveHandler, bPlayerControlsLostTurn);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedLostTurnSaveHandler, bPlayerControlsUnactivatedLost);
+`MCM_API_BasicCheckboxSaveHandler(ForceInactiveUnitsToRunSaveHandler, bForceControlledUnitsToRun);
 
 `MCM_API_BasicCheckboxSaveHandler(AdventReinforcements_EnableSubmodSaveHandler, bAdventReinforcements_EnableSubmod);
 `MCM_API_BasicSliderSaveHandler(AdventReinforcements_PlacementRangeSaveHandler, fAdventReinforcements_ReinforcementPlacementRange);

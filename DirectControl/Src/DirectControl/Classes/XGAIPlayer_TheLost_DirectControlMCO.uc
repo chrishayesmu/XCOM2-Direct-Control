@@ -59,7 +59,7 @@ simulated function OnUnitActionPhase_ActionsAvailable(XComGameState_Unit UnitSta
 
 	if (UnitsToMove.Length == 0 && !IsScampering())
 	{
-        // The alien turn overlay normally won't hide, but it's blocking the ability bar
+        // The Lost turn overlay normally won't hide, but it's blocking the ability bar
         if (`PRES.m_kTurnOverlay.IsShowingTheLostTurn())
         {
             SetTimer(2.0f, /* inBLoop */ false, 'HideTheLostTurn', `PRES.m_kTurnOverlay);
@@ -87,12 +87,6 @@ simulated function GatherUnitsToMove()
 	History = `XCOMHISTORY;
     bCachedAllowSelectAll = `CHEATMGR.bAllowSelectAll;
 
-    // If the player is responsible for moving every unit, skip all the checks after this
-    if (IsFullHumanControl())
-    {
-        return;
-    }
-
     // We want to use the superclass method to decide how to move unactivated pods, but it will just return immediately
     // if bAllowSelectAll is on, so quickly toggle it off first
     `CHEATMGR.bAllowSelectAll = false;
@@ -110,25 +104,10 @@ simulated function GatherUnitsToMove()
         UnitState = XComGameState_Unit(History.GetGameStateForObjectID(UnitsToMove[Index].UnitObjectRef.ObjectID));
 
         // Remove any active AI so that the player can move them
-        if (!UnitState.IsUnrevealedAI())
+        if (class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitState))
         {
             UnitsToMove.Remove(Index, 1);
             Index--;
         }
     }
-}
-
-private function bool IsFullHumanControl()
-{
-    if (`DC_CFG(bPlayerControlsAlienTurn) && `DC_CFG(bPlayerControlsUnactivatedAliens) && m_eTeam == eTeam_Alien)
-    {
-        return true;
-    }
-
-    if (`DC_CFG(bPlayerControlsLostTurn) && `DC_CFG(bPlayerControlsUnactivatedLost) && m_eTeam == eTeam_TheLost)
-    {
-        return true;
-    }
-
-    return false;
 }

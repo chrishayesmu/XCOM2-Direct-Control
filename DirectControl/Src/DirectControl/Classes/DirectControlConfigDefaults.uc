@@ -13,6 +13,8 @@ var config bool bPlayerControlsUnactivatedAliens;
 var config bool bPlayerControlsLostTurn;
 var config bool bPlayerControlsUnactivatedLost;
 
+var config bool bForceControlledUnitsToRun;
+
 /////////////////////////////////////////////////
 // Submod config: ADVENT Reinforcements
 /////////////////////////////////////////////////

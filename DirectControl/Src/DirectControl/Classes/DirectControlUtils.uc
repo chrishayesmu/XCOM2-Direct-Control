@@ -84,6 +84,29 @@ static final function bool IsModActive(name ModName)
     return false;
 }
 
+static function bool IsPlayerControllingUnit(XComGameState_Unit UnitState)
+{
+    if (!IsLocalPlayer(UnitState.GetTeam()))
+    {
+        return false;
+    }
+
+    if (UnitState.IsUnrevealedAI())
+    {
+        switch (UnitState.GetTeam())
+        {
+            case eTeam_Alien:
+                return `DC_CFG(bPlayerControlsUnactivatedAliens);
+            case eTeam_TheLost:
+                return `DC_CFG(bPlayerControlsUnactivatedLost);
+            default:
+                return false;
+        }
+    }
+
+    return true;
+}
+
 /// <summary>
 /// Checks whether a unit is, at this moment, in the process of spawning as reinforcements. If the turn has changed
 /// since spawning, they are not considered to be currently spawning.
