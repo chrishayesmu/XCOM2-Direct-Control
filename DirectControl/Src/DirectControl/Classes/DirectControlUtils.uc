@@ -84,14 +84,20 @@ static final function bool IsModActive(name ModName)
     return false;
 }
 
-static function bool IsUnitSpawnedAsReinforcements(int UnitObjectID)
+/// <summary>
+/// Checks whether a unit is, at this moment, in the process of spawning as reinforcements. If the turn has changed
+/// since spawning, they are not considered to be currently spawning.
+/// </summary>
+static function bool IsUnitSpawningAsReinforcements(int UnitObjectID)
 {
 	local XComGameStateHistory History;
-    local XComGameStateContext_ChangeContainer Context;
+    local XComGameStateContext_ChangeContainer Context, ReinforcementContext;
+	local XComGameStateContext_TacticalGameRule GameRuleContext;
 	local XComGameState_AIUnitData AIUnitData;
 
 	History = `XCOMHISTORY;
 
+    // Look for a reinforcement game state containing our unit
     foreach History.IterateContextsByClassType(class'XComGameStateContext_ChangeContainer', Context,, true)
     {
         if (Context.ChangeInfo == class'XComGameState_AIReinforcementSpawner'.default.SpawnReinforcementsCompleteChangeDesc)
@@ -101,11 +107,39 @@ static function bool IsUnitSpawnedAsReinforcements(int UnitObjectID)
             {
                 if (AIUnitData.m_iUnitObjectID == UnitObjectID)
                 {
-                    return true;
+                    ReinforcementContext = Context;
+                    break;
                 }
             }
         }
+
+        if (ReinforcementContext != none)
+        {
+            break;
+        }
     }
 
-    return false;
+    if (ReinforcementContext == none)
+    {
+        return false;
+    }
+
+    // Now see if there's any start-of-turn contexts which come after our reinforcement context
+    foreach History.IterateContextsByClassType(class'XComGameStateContext_TacticalGameRule', GameRuleContext,, true)
+    {
+        // Stop iterating once we've predated our reinforcement spawn event
+        if (GameRuleContext.EventChainStartIndex < ReinforcementContext.EventChainStartIndex)
+        {
+            break;
+        }
+
+		if (GameRuleContext.GameRuleType == eGameRule_PlayerTurnBegin)
+        {
+            // Some reinforcements spawn at the start of the enemy turn; if these events are in the same chain, then the unit is currently
+            // spawning as reinforcements, otherwise they spawned on an earlier turn
+            return GameRuleContext.EventChainStartIndex == ReinforcementContext.EventChainStartIndex;
+        }
+    }
+
+    return true;
 }

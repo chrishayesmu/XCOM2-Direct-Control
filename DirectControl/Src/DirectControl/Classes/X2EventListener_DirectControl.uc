@@ -26,7 +26,7 @@ private static function EventListenerReturn OnUnitBeginPlay_CheckForLostSwarms(O
 
     UnitState = XComGameState_Unit(EventSource);
 
-    if (UnitState.GetTeam() != eTeam_TheLost || !class'DirectControlUtils'.static.IsUnitSpawnedAsReinforcements(UnitState.ObjectID))
+    if (UnitState.GetTeam() != eTeam_TheLost || !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitState.ObjectID))
     {
         return ELR_NoInterrupt;
     }

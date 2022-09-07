@@ -138,9 +138,8 @@ function bool CanScamper(XComGameState_Unit UnitStateObject)
                            || (`DC_CFG(bPlayerControlsLostTurn)  && `DC_CFG(bPlayerControlsUnactivatedLost) && UnitStateObject.GetTeam() == eTeam_TheLost);
 
     // TODO: for some reason we can't control the Chosen's first move
-    if (bIsTeamPlayerControlled && !class'DirectControlUtils'.static.IsUnitSpawnedAsReinforcements(UnitStateObject.ObjectID))
+    if (bIsTeamPlayerControlled && !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitStateObject.ObjectID))
     {
-        `DC_LOG("CanScamper: unit " $ UnitStateObject.GetFullName() $ " for team " $ UnitStateObject.GetTeam() $ " is player-controlled and non-reinforcements, so not scampering");
         return false;
     }
 

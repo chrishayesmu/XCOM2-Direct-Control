@@ -70,7 +70,7 @@ simulated function OnUnitActionPhase_ActionsAvailable(XComGameState_Unit UnitSta
             SetTimer(2.0f, /* inBLoop */ false, 'HideChosenTurn', `PRES.m_kTurnOverlay);
         }
 
-		super.OnUnitActionPhase_ActionsAvailable(UnitState); //Pretend we are a normal human player
+		super(XGPlayer).OnUnitActionPhase_ActionsAvailable(UnitState); //Pretend we are a normal human player
 		return;
 	}
 
