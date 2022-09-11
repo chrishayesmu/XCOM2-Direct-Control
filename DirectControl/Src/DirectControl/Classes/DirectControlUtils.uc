@@ -3,40 +3,40 @@ class DirectControlUtils extends Object
 
 static function XComGameState_Player GetActivePlayer()
 {
-	local XComGameStateHistory History;
-	local XComGameStateContext_TacticalGameRule Context;
-	local StateObjectReference PlayerRef;
+    local XComGameStateHistory History;
+    local XComGameStateContext_TacticalGameRule Context;
+    local StateObjectReference PlayerRef;
 
-	History = `XCOMHISTORY;
+    History = `XCOMHISTORY;
 
     // Iterate history looking for the most recent turn begin
-	foreach History.IterateContextsByClassType(class'XComGameStateContext_TacticalGameRule', Context)
-	{
-		if (Context.GameRuleType == eGameRule_PlayerTurnBegin)
-		{
-			PlayerRef = Context.PlayerRef;
+    foreach History.IterateContextsByClassType(class'XComGameStateContext_TacticalGameRule', Context)
+    {
+        if (Context.GameRuleType == eGameRule_PlayerTurnBegin)
+        {
+            PlayerRef = Context.PlayerRef;
             break;
-		}
-	}
+        }
+    }
 
     return XComGameState_Player(`XCOMHISTORY.GetGameStateForObjectID(PlayerRef.ObjectID));
 }
 
 static function XComGameState_Player GetPlayerForTeam(ETeam TeamFlag)
 {
-	local XComGameStateHistory History;
-	local XComGameStateContext_TacticalGameRule Context;
+    local XComGameStateHistory History;
+    local XComGameStateContext_TacticalGameRule Context;
     local XComGameState_Player PlayerState;
-	local StateObjectReference PlayerRef;
+    local StateObjectReference PlayerRef;
 
-	History = `XCOMHISTORY;
+    History = `XCOMHISTORY;
 
     // Iterate history to get the most recent state for the given player team
-	foreach History.IterateContextsByClassType(class'XComGameStateContext_TacticalGameRule', Context)
-	{
-		if (Context.GameRuleType == eGameRule_PlayerTurnBegin)
-		{
-			PlayerRef = Context.PlayerRef;
+    foreach History.IterateContextsByClassType(class'XComGameStateContext_TacticalGameRule', Context)
+    {
+        if (Context.GameRuleType == eGameRule_PlayerTurnBegin)
+        {
+            PlayerRef = Context.PlayerRef;
 
             PlayerState = XComGameState_Player(`XCOMHISTORY.GetGameStateForObjectID(PlayerRef.ObjectID));
 
@@ -44,10 +44,10 @@ static function XComGameState_Player GetPlayerForTeam(ETeam TeamFlag)
             {
                 return PlayerState;
             }
-		}
-	}
+        }
+    }
 
-	return none;
+    return none;
 }
 
 static function bool IsLocalPlayer(ETeam TeamFlag)
@@ -107,18 +107,44 @@ static function bool IsPlayerControllingUnit(XComGameState_Unit UnitState)
     return true;
 }
 
+static function bool IsUnitSpawnedAsReinforcements(int UnitObjectID)
+{
+    local XComGameStateHistory History;
+    local XComGameStateContext_ChangeContainer Context;
+    local XComGameState_AIUnitData AIUnitData;
+
+    History = `XCOMHISTORY;
+
+    foreach History.IterateContextsByClassType(class'XComGameStateContext_ChangeContainer', Context,, true)
+    {
+        if (Context.ChangeInfo == class'XComGameState_AIReinforcementSpawner'.default.SpawnReinforcementsCompleteChangeDesc)
+        {
+            // check if this change spawned our units
+            foreach Context.AssociatedState.IterateByClassType(class'XComGameState_AIUnitData', AIUnitData)
+            {
+                if (AIUnitData.m_iUnitObjectID == UnitObjectID)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 /// <summary>
 /// Checks whether a unit is, at this moment, in the process of spawning as reinforcements. If the turn has changed
 /// since spawning, they are not considered to be currently spawning.
 /// </summary>
 static function bool IsUnitSpawningAsReinforcements(int UnitObjectID)
 {
-	local XComGameStateHistory History;
+    local XComGameStateHistory History;
     local XComGameStateContext_ChangeContainer Context, ReinforcementContext;
-	local XComGameStateContext_TacticalGameRule GameRuleContext;
-	local XComGameState_AIUnitData AIUnitData;
+    local XComGameStateContext_TacticalGameRule GameRuleContext;
+    local XComGameState_AIUnitData AIUnitData;
 
-	History = `XCOMHISTORY;
+    History = `XCOMHISTORY;
 
     // Look for a reinforcement game state containing our unit
     foreach History.IterateContextsByClassType(class'XComGameStateContext_ChangeContainer', Context,, true)
@@ -156,7 +182,7 @@ static function bool IsUnitSpawningAsReinforcements(int UnitObjectID)
             break;
         }
 
-		if (GameRuleContext.GameRuleType == eGameRule_PlayerTurnBegin)
+        if (GameRuleContext.GameRuleType == eGameRule_PlayerTurnBegin)
         {
             // Some reinforcements spawn at the start of the enemy turn; if these events are in the same chain, then the unit is currently
             // spawning as reinforcements, otherwise they spawned on an earlier turn
@@ -165,4 +191,51 @@ static function bool IsUnitSpawningAsReinforcements(int UnitObjectID)
     }
 
     return true;
+}
+
+static function bool PodSpawnContainsChosen(PodSpawnInfo SpawnInfo)
+{
+    local name CharName;
+    local XGUnit Unit;
+    local XComGameStateHistory History;
+    local XComGameState_Unit UnitState;
+
+    History = `XCOMHISTORY;
+
+    if (SpawnInfo.Team != eTeam_Alien)
+    {
+        return false;
+    }
+
+    foreach SpawnInfo.SpawnedPod.m_arrMember(Unit)
+    {
+        UnitState = XComGameState_Unit(History.GetGameStateForObjectID(Unit.ObjectID));
+
+        if (UnitState.IsChosen())
+        {
+            return true;
+        }
+    }
+
+    foreach SpawnInfo.SelectedCharacterTemplateNames(CharName)
+    {
+        switch (CharName)
+        {
+            case 'ChosenAssassin':
+            case 'ChosenAssassinM2':
+            case 'ChosenAssassinM3':
+            case 'ChosenAssassinM4':
+            case 'ChosenSniper':
+            case 'ChosenSniperM2':
+            case 'ChosenSniperM3':
+            case 'ChosenSniperM4':
+            case 'ChosenWarlock':
+            case 'ChosenWarlockM2':
+            case 'ChosenWarlockM3':
+            case 'ChosenWarlockM4':
+                return true;
+        }
+    }
+
+    return false;
 }

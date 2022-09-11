@@ -9,10 +9,12 @@ static function array<X2DataTemplate> CreateTemplates()
 
     Template.RegisterInTactical = true;
     Template.AddCHEvent('AbilityActivated', OnAbilityVisualizationBegin_ForceUnitToRun, ELD_OnVisualizationBlockStarted);
-    Template.AddCHEvent('PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted);
-	Template.AddCHEvent('OnUnitBeginPlay', OnUnitBeginPlay_CheckForLostSwarms, ELD_OnStateSubmitted);
-	Template.AddCHEvent('OnUnitBeginPlay', OnUnitBeginPlay_VisStarted, ELD_OnVisualizationBlockStarted);
-	Template.AddCHEvent('UnitDied', OnUnitDied, ELD_Immediate);
+    Template.AddCHEvent('PlayerTurnBegun', OnPlayerTurnBegun, ELD_OnStateSubmitted, 99); // needs to occur before reinforcement spawns do
+    Template.AddCHEvent('SpawnReinforcementsComplete', OnSpawnReinforcementsComplete_SwapToXCOM, ELD_Immediate);
+    Template.AddCHEvent('SpawnReinforcementsComplete', OnSpawnReinforcementsComplete_SwapToActiveTeam, ELD_OnVisualizationBlockCompleted);
+    //Template.AddCHEvent('OnUnitBeginPlay', OnUnitBeginPlay_CheckForLostSwarms, ELD_OnStateSubmitted); // TODO
+    Template.AddCHEvent('OnUnitBeginPlay', OnUnitBeginPlay_VisStarted, ELD_OnVisualizationBlockStarted);
+    Template.AddCHEvent('UnitDied', OnUnitDied, ELD_Immediate);
 
     Templates.AddItem(Template);
 
@@ -22,7 +24,7 @@ static function array<X2DataTemplate> CreateTemplates()
 private static function EventListenerReturn OnAbilityVisualizationBegin_ForceUnitToRun(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
 {
     local int Index;
-	local array<X2Action> ActionNodes;
+    local array<X2Action> ActionNodes;
     local X2Action_Move MoveNode;
     local XComGameState_Ability AbilityState;
     local XComGameState_Unit UnitState;
@@ -69,9 +71,69 @@ private static function EventListenerReturn OnAbilityVisualizationBegin_ForceUni
     return ELR_NoInterrupt;
 }
 
+private static function EventListenerReturn OnSpawnReinforcementsComplete_SwapToActiveTeam(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
+{
+    local XComTacticalController kLocalPC;
+    local XComGameState_Player PlayerState;
+    local XComGameState_AIReinforcementSpawner ReinforcementSpawner;
+
+    ReinforcementSpawner = XComGameState_AIReinforcementSpawner(EventSource);
+
+    if (class'DirectControlUtils'.static.PodSpawnContainsChosen(ReinforcementSpawner.SpawnInfo))
+    {
+        `DC_LOG("Pod contains Chosen, not changing controlling player");
+
+        return ELR_NoInterrupt;
+    }
+
+    PlayerState = class'DirectControlUtils'.static.GetActivePlayer();
+
+    `DC_LOG("Reinforcements are done spawning; active team is " $ PlayerState.TeamFlag);
+
+    if (class'DirectControlUtils'.static.IsLocalPlayer(PlayerState.TeamFlag))
+    {
+        `DC_LOG("Player is local; switching controlling player");
+
+        `CHEATMGR.bAllowSelectAll = true;
+
+        kLocalPC = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
+        kLocalPC.SetControllingPlayer(PlayerState);
+        kLocalPC.SetTeamType(PlayerState.TeamFlag);
+    }
+
+    return ELR_NoInterrupt;
+}
+
+private static function EventListenerReturn OnSpawnReinforcementsComplete_SwapToXCOM(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
+{
+    local XComTacticalController kLocalPC;
+    local XComGameState_Player PlayerState;
+    local XComGameState_AIReinforcementSpawner ReinforcementSpawner;
+
+    ReinforcementSpawner = XComGameState_AIReinforcementSpawner(EventSource);
+
+    if (class'DirectControlUtils'.static.PodSpawnContainsChosen(ReinforcementSpawner.SpawnInfo))
+    {
+        `DC_LOG("Pod contains Chosen, not changing controlling player");
+
+        return ELR_NoInterrupt;
+    }
+
+    `DC_LOG("Reinforcements are spawning; switching controlling player to XCOM");
+
+    `CHEATMGR.bAllowSelectAll = false;
+    PlayerState = class'DirectControlUtils'.static.GetPlayerForTeam(eTeam_XCom);
+
+    kLocalPC = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
+    kLocalPC.SetControllingPlayer(PlayerState);
+    kLocalPC.SetTeamType(PlayerState.TeamFlag);
+
+    return ELR_NoInterrupt;
+}
+
 private static function EventListenerReturn OnUnitBeginPlay_CheckForLostSwarms(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
 {
-	local XComTacticalController kLocalPC;
+    local XComTacticalController kLocalPC;
     local XComGameState_Player PlayerState;
     local XComGameState_Unit UnitState;
 
@@ -101,7 +163,7 @@ private static function EventListenerReturn OnUnitBeginPlay_CheckForLostSwarms(O
 // done, which is handled using a UISL elsewhere to check for the UIChosenReveal screen.
 private static function EventListenerReturn OnUnitBeginPlay_VisStarted(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
 {
-	local XComTacticalController kLocalPC;
+    local XComTacticalController kLocalPC;
     local XComGameState_Player PlayerState;
     local XComGameState_Unit UnitState;
 
@@ -125,12 +187,10 @@ private static function EventListenerReturn OnUnitBeginPlay_VisStarted(Object Ev
 static function EventListenerReturn OnUnitDied(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
 {
     local bool bTeamHasLivingUnit;
-	local XComTacticalController kLocalPC;
+    local XComTacticalController kLocalPC;
     local XComGameStateHistory History;
     local XComGameState_Unit EvtUnitState, UnitState;
     local XComGameState_Player PlayerState;
-
-    `DC_LOG("OnUnitDied: Event = " $ Event $ ", EventData = " $ EventData $ ", EventSource = " $ EventSource);
 
     History = `XCOMHISTORY;
 
@@ -185,7 +245,7 @@ static function EventListenerReturn OnUnitDied(Object EventData, Object EventSou
 // human-controlled, and sets up the game environment accordingly.
 private static function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object EventSource, XComGameState GameState, Name Event, Object CallbackData)
 {
-	local XComTacticalController kLocalPC;
+    local XComTacticalController kLocalPC;
     local XComGameState_Player PlayerState;
 
     PlayerState = XComGameState_Player(EventSource);

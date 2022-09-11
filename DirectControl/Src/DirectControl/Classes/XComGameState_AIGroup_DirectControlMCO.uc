@@ -2,33 +2,33 @@ class XComGameState_AIGroup_DirectControlMCO extends XComGameState_AIGroup;
 
 function ProcessReflexMoveActivate(optional name InSpecialRevealType)
 {
-	local XComGameStateHistory History;
-	local int Index, NumScamperers, NumSurprised, i, NumActionPoints;
-	local XComGameState_Unit UnitStateObject, TargetStateObject, NewUnitState;
-	local XComGameState_AIGroup NewGroupState;
-	local StateObjectReference Ref;
-	local XGAIPlayer AIPlayer;
-	local XComGameState NewGameState;
-	local array<StateObjectReference> Scamperers;
-	local float SurprisedChance;
-	local bool bUnitIsSurprised;
-	local X2TacticalGameRuleset Rules;
+    local XComGameStateHistory History;
+    local int Index, NumScamperers, NumSurprised, i, NumActionPoints;
+    local XComGameState_Unit UnitStateObject, TargetStateObject, NewUnitState;
+    local XComGameState_AIGroup NewGroupState;
+    local StateObjectReference Ref;
+    local XGAIPlayer AIPlayer;
+    local XComGameState NewGameState;
+    local array<StateObjectReference> Scamperers;
+    local float SurprisedChance;
+    local bool bUnitIsSurprised;
+    local X2TacticalGameRuleset Rules;
 
-	History = `XCOMHISTORY;
+    History = `XCOMHISTORY;
 
-	if( !bProcessedScamper ) // Only allow scamper once.
-	{
-		//First, collect a list of scampering units. Due to cheats and other mechanics this list could be empty, in which case we should just skip the following logic
-		foreach m_arrMembers(Ref)
-		{
-			UnitStateObject = XComGameState_Unit(History.GetGameStateForObjectID(Ref.ObjectID));
-			if(CanScamper(UnitStateObject))
-			{
-				Scamperers.AddItem(Ref);
-			}
-		}
+    if( !bProcessedScamper ) // Only allow scamper once.
+    {
+        //First, collect a list of scampering units. Due to cheats and other mechanics this list could be empty, in which case we should just skip the following logic
+        foreach m_arrMembers(Ref)
+        {
+            UnitStateObject = XComGameState_Unit(History.GetGameStateForObjectID(Ref.ObjectID));
+            if(CanScamper(UnitStateObject))
+            {
+                Scamperers.AddItem(Ref);
+            }
+        }
 
-		NumScamperers = Scamperers.Length;
+        NumScamperers = Scamperers.Length;
 
         // DC: if there's no one eligible to scamper, we still need to mark the group as having scampered, or other game logic can break
         if (NumScamperers == 0)
@@ -124,7 +124,7 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
         {
             History.CleanupPendingGameState(NewGameState);
         }
-	}
+    }
 }
 
 function bool CanScamper(XComGameState_Unit UnitStateObject)
@@ -135,27 +135,32 @@ function bool CanScamper(XComGameState_Unit UnitStateObject)
     // Reinforcements are allowed to scamper because they otherwise have no action points and won't be controllable
     // on the turn that they spawn.
     bIsTeamPlayerControlled = (`DC_CFG(bPlayerControlsAlienTurn) && `DC_CFG(bPlayerControlsUnactivatedAliens) && UnitStateObject.GetTeam() == eTeam_Alien)
-                           || (`DC_CFG(bPlayerControlsLostTurn)  && `DC_CFG(bPlayerControlsUnactivatedLost) && UnitStateObject.GetTeam() == eTeam_TheLost);
+                           || (`DC_CFG(bPlayerControlsLostTurn)  && `DC_CFG(bPlayerControlsUnactivatedLost)   && UnitStateObject.GetTeam() == eTeam_TheLost);
 
-    // TODO: for some reason we can't control the Chosen's first move
+    if (bIsTeamPlayerControlled && UnitStateObject.IsChosen() && !class'DirectControlUtils'.static.IsUnitSpawnedAsReinforcements(UnitStateObject.ObjectID))
+    {
+        // Chosen have to be allowed to scamper or they break
+        return true;
+    }
+
     if (bIsTeamPlayerControlled && !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitStateObject.ObjectID))
     {
         return false;
     }
 
     // DC: same as vanilla logic but allow player-controlled units to scamper
-	return UnitStateObject.IsAlive() &&
-		 (!UnitStateObject.IsIncapacitated()) &&
-		   UnitStateObject.bTriggerRevealAI &&
-		  !UnitStateObject.IsPanicked() &&
-		  !UnitStateObject.IsUnitAffectedByEffectName(class'X2AbilityTemplateManager'.default.PanickedName) &&
-		  !UnitStateObject.IsUnitAffectedByEffectName(class'X2AbilityTemplateManager'.default.BurrowedName) &&
-	     (`CHEATMGR == None || !`CHEATMGR.bAbortScampers);
+    return UnitStateObject.IsAlive() &&
+         (!UnitStateObject.IsIncapacitated()) &&
+           UnitStateObject.bTriggerRevealAI &&
+          !UnitStateObject.IsPanicked() &&
+          !UnitStateObject.IsUnitAffectedByEffectName(class'X2AbilityTemplateManager'.default.PanickedName) &&
+          !UnitStateObject.IsUnitAffectedByEffectName(class'X2AbilityTemplateManager'.default.BurrowedName) &&
+         (`CHEATMGR == None || !`CHEATMGR.bAbortScampers);
 }
 
 private function SubmitFakeScamperState()
 {
-	local XComGameState NewGameState;
+    local XComGameState NewGameState;
     local XComGameState_AIGroup NewGroupState;
 
     NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Direct Control: Fake Scamper State");
