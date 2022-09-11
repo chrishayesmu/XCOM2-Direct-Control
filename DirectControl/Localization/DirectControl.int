@@ -13,6 +13,12 @@ strTooltipPlayerControlsUnactivatedLost="If checked, the player will control Los
 strLabelForceControlledUnitsToRun="Force Controlled Units to Run"
 strTooltipForceControlledUnitsToRun="If checked, controlled units will always run even if inactive, saving the long animation time of walking them around manually."
 
+strTurnTimerGroupHeader="Turn Timer"
+strLabelTurnTimerEnabled="Enable Turn Timer"
+strTooltipTurnTimerEnabled="If checked, a timer will be visible on the UI showing how long the current turn has lasted. Only shows on human-controlled turns, and does not automatically end the turn or affect gameplay."
+strLabelTurnTimerShowsActiveTeam="Show Active Team"
+strTooltipTurnTimerShowsActiveTeam="If checked, the turn timer will display which team's turn it is."
+
 strAdventReinforcementsGroupHeader="Submod: ADVENT Reinforcements"
 strLabelAdventReinforcementsEnabled="Enable Submod"
 strTooltipAdventReinforcementsEnabled="If checked, the \"Request Reinforcements\" ability from ADVENT Reinforcements is changed to target a specific tile, rather than calling reinforcements to a random location."
@@ -20,3 +26,10 @@ strLabelAdventReinforcementsRequireLos="Require Squad Vision of Call-in"
 strTooltipAdventReinforcementsRequireLos="If checked, reinforcements can only be called to a tile which the alien team can see. Otherwise, line of sight is not needed."
 strLabelAdventReinforcementsPlacementRange="Call-in Range (meters)"
 strTooltipAdventReinforcementsPlacementRange="If greater than 0, limits the range at which reinforcements can be called in. Otherwise, reinforcements can be placed at any distance."
+
+[UITurnTimer]
+strTimerTextWithTeam="<Time/> Elapsed | <Team/>"
+strTimerTextWithoutTeam="<Time/> Elapsed"
+strAlienTurn="Alien Turn"
+strLostTurn="Lost Turn"
+strXComTurn="XCOM Turn"

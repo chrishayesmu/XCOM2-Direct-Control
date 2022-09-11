@@ -4,7 +4,7 @@ class DirectControlConfig extends UIScreenListener
 var config int ConfigVersion;
 
 /////////////////////////////////////////////////
-// Base mod config
+// Base mod config: team control
 /////////////////////////////////////////////////
 
 var config bool bPlayerControlsAlienTurn;
@@ -14,6 +14,13 @@ var config bool bPlayerControlsLostTurn;
 var config bool bPlayerControlsUnactivatedLost;
 
 var config bool bForceControlledUnitsToRun;
+
+/////////////////////////////////////////////////
+// Base mod config: turn timer
+/////////////////////////////////////////////////
+
+var config bool bShowTurnTimer;
+var config bool bTurnTimerShowsActiveTeam;
 
 /////////////////////////////////////////////////
 // Submod config: ADVENT Reinforcements
@@ -36,6 +43,12 @@ var const localized string strLabelPlayerControlsUnactivatedLost;
 var const localized string strTooltipPlayerControlsUnactivatedLost;
 var const localized string strLabelForceControlledUnitsToRun;
 var const localized string strTooltipForceControlledUnitsToRun;
+
+var const localized string strTurnTimerGroupHeader;
+var const localized string strLabelTurnTimerEnabled;
+var const localized string strTooltipTurnTimerEnabled;
+var const localized string strLabelTurnTimerShowsActiveTeam;
+var const localized string strTooltipTurnTimerShowsActiveTeam;
 
 var const localized string strAdventReinforcementsGroupHeader;
 var const localized string strLabelAdventReinforcementsEnabled;
@@ -73,7 +86,11 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedAliens), strLabelPlayerControlsUnactivatedAliens, strTooltipPlayerControlsUnactivatedAliens, bPlayerControlsUnactivatedAliens, PlayerControlsUnactivatedAliensTurnSaveHandler);
     Group.AddCheckbox(nameof(bPlayerControlsLostTurn),          strLabelPlayerControlsLostTurn,          strTooltipPlayerControlsLostTurn,          bPlayerControlsLostTurn,          PlayerControlsLostTurnSaveHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedLost),   strLabelPlayerControlsUnactivatedLost,   strTooltipPlayerControlsUnactivatedLost,   bPlayerControlsUnactivatedLost,   PlayerControlsUnactivatedLostTurnSaveHandler);
-    Group.AddCheckbox(nameof(bForceControlledUnitsToRun),         strLabelForceControlledUnitsToRun,         strTooltipForceControlledUnitsToRun,         bForceControlledUnitsToRun,         ForceInactiveUnitsToRunSaveHandler);
+    Group.AddCheckbox(nameof(bForceControlledUnitsToRun),       strLabelForceControlledUnitsToRun,       strTooltipForceControlledUnitsToRun,       bForceControlledUnitsToRun,       ForceInactiveUnitsToRunSaveHandler);
+
+    Group = Page.AddGroup('DirectControlTurnTimerSettings', strTurnTimerGroupHeader);
+    Group.AddCheckbox(nameof(bShowTurnTimer),            strLabelTurnTimerEnabled,         strTooltipTurnTimerEnabled,         bShowTurnTimer,            TurnTimerEnabledSaveHandler);
+    Group.AddCheckbox(nameof(bTurnTimerShowsActiveTeam), strLabelTurnTimerShowsActiveTeam, strTooltipTurnTimerShowsActiveTeam, bTurnTimerShowsActiveTeam, TurnTimerShowsTeamSaveHandler);
 
     if (class'DirectControlUtils'.static.IsModActive('WOTCAdventReinforcements'))
     {
@@ -101,6 +118,9 @@ private function LoadSavedSettings()
     bPlayerControlsUnactivatedLost = `DC_CFG(bPlayerControlsUnactivatedLost);
     bForceControlledUnitsToRun = `DC_CFG(bForceControlledUnitsToRun);
 
+    bShowTurnTimer = `DC_CFG(bShowTurnTimer);
+    bTurnTimerShowsActiveTeam = `DC_CFG(bTurnTimerShowsActiveTeam);
+
     bAdventReinforcements_EnableSubmod = `DC_CFG(bAdventReinforcements_EnableSubmod);
     fAdventReinforcements_ReinforcementPlacementRange = `DC_CFG(fAdventReinforcements_ReinforcementPlacementRange);
     bAdventReinforcements_RequireSquadLosToTargetTile = `DC_CFG(bAdventReinforcements_RequireSquadLosToTargetTile);
@@ -125,6 +145,9 @@ private function SaveButtonClicked(MCM_API_SettingsPage Page)
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsLostTurnSaveHandler, bPlayerControlsLostTurn);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedLostTurnSaveHandler, bPlayerControlsUnactivatedLost);
 `MCM_API_BasicCheckboxSaveHandler(ForceInactiveUnitsToRunSaveHandler, bForceControlledUnitsToRun);
+
+`MCM_API_BasicCheckboxSaveHandler(TurnTimerEnabledSaveHandler, bShowTurnTimer);
+`MCM_API_BasicCheckboxSaveHandler(TurnTimerShowsTeamSaveHandler, bTurnTimerShowsActiveTeam);
 
 `MCM_API_BasicCheckboxSaveHandler(AdventReinforcements_EnableSubmodSaveHandler, bAdventReinforcements_EnableSubmod);
 `MCM_API_BasicSliderSaveHandler(AdventReinforcements_PlacementRangeSaveHandler, fAdventReinforcements_ReinforcementPlacementRange);

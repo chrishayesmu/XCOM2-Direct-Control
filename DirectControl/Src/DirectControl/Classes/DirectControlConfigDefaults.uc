@@ -4,7 +4,7 @@ class DirectControlConfigDefaults extends Object
 var config int ConfigVersion;
 
 /////////////////////////////////////////////////
-// Base mod config
+// Base mod config: team control
 /////////////////////////////////////////////////
 
 var config bool bPlayerControlsAlienTurn;
@@ -14,6 +14,13 @@ var config bool bPlayerControlsLostTurn;
 var config bool bPlayerControlsUnactivatedLost;
 
 var config bool bForceControlledUnitsToRun;
+
+/////////////////////////////////////////////////
+// Base mod config: turn timer
+/////////////////////////////////////////////////
+
+var config bool bShowTurnTimer;
+var config bool bTurnTimerShowsActiveTeam;
 
 /////////////////////////////////////////////////
 // Submod config: ADVENT Reinforcements
