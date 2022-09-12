@@ -239,3 +239,19 @@ static function bool PodSpawnContainsChosen(PodSpawnInfo SpawnInfo)
 
     return false;
 }
+
+static function SetControllingPlayerTeam(ETeam TeamFlag)
+{
+    local XComTacticalController kLocalPC;
+    local XComGameState_Player PlayerState;
+
+    `DC_LOG("Setting controlling player team to " $ TeamFlag);
+
+    PlayerState = GetPlayerForTeam(TeamFlag);
+
+    `CHEATMGR.bAllowSelectAll = TeamFlag != eTeam_XCom;
+
+    kLocalPC = XComTacticalController(class'WorldInfo'.static.GetWorldInfo().GetALocalPlayerController());
+    kLocalPC.SetControllingPlayer(PlayerState);
+    kLocalPC.SetTeamType(PlayerState.TeamFlag);
+}

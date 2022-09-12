@@ -1,5 +1,36 @@
 class XGAIPlayer_DirectControlMCO extends XGAIPlayer;
 
+function Init(bool bLoading = false)
+{
+    super.Init(bLoading);
+
+    // In case we're loading a save made during an alien turn, we need to set the controlling team
+    if (class'DirectControlUtils'.static.GetActivePlayer().TeamFlag == eTeam_Alien && class'DirectControlUtils'.static.IsLocalPlayer(eTeam_Alien))
+    {
+        class'DirectControlUtils'.static.SetControllingPlayerTeam(eTeam_Alien);
+    }
+}
+
+simulated function OnBeginTurnVisualized(int InitiativeObjectID)
+{
+	local array<int> GroupMemberIDs;
+	local XComGameState_AIGroup GroupState;
+
+    // Logic copied from XGPlayer.OnBeginTurnVisualized: don't change controllers until we have a group ready to use, because that tends
+    // to break a lot of things, including unit visibility and fog of war
+	GroupState = XComGameState_AIGroup(`XCOMHISTORY.GetGameStateForObjectID(InitiativeObjectID));
+
+	if ( (GroupState != None && GroupState.bSummoningSicknessCleared && GroupState.GetLivingMembers(GroupMemberIDs)) || `REPLAY.bInTutorial )
+    {
+        if (class'DirectControlUtils'.static.IsLocalPlayer(eTeam_Alien))
+        {
+            class'DirectControlUtils'.static.SetControllingPlayerTeam(eTeam_Alien);
+        }
+    }
+
+    super.OnBeginTurnVisualized(InitiativeObjectID);
+}
+
 /// <summary>
 /// Called by the rules engine each time it evaluates whether any units have available actions "ActionsAvailable()".
 ///
@@ -82,6 +113,12 @@ simulated function OnUnitActionPhase_ActionsAvailable(XComGameState_Unit UnitSta
 	TryBeginNextUnitTurn();
 }
 
+simulated function OnUnitActionPhaseFinished_NextPlayer()
+{
+	`DC_LOG("OnUnitActionPhaseFinished_NextPlayer: setting team to XCOM");
+	class'DirectControlUtils'.static.SetControllingPlayerTeam(eTeam_XCom);
+}
+
 simulated function GatherUnitsToMove()
 {
     local bool bCachedAllowSelectAll;
@@ -99,7 +136,7 @@ simulated function GatherUnitsToMove()
     `CHEATMGR.bAllowSelectAll = bCachedAllowSelectAll;
 
     // If the player isn't controlling this team, then we're done; let the AI handle it from here
-    if (!`DC_CFG(bPlayerControlsAlienTurn))
+    if (!class'DirectControlUtils'.static.IsLocalPlayer(eTeam_Alien))
     {
         return;
     }
