@@ -1,0 +1,136 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Chosen common abilities: added localization
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[ChosenKidnapMove X2AbilityTemplate]
+LocFriendlyName="Kidnap"
+LocLongDescription="Kidnap a Dazed target, capturing them and providing some intelligence on XCOM's whereabouts. The Chosen will leave the battlefield afterwards."
+LocHelpText="Kidnap a Dazed target, capturing them and providing some intelligence on XCOM's whereabouts. The Chosen will leave the battlefield afterwards."
+LocFlyOverText="Kidnap"
+
+[ChosenExtractKnowledgeMove X2AbilityTemplate]
+LocFriendlyName="Extract Knowledge"
+LocLongDescription="Psionically extract knowledge about XCOM from a Dazed target. The Chosen will leave the battlefield afterwards."
+LocHelpText="Psionically extract knowledge about XCOM from a Dazed target. The Chosen will leave the battlefield afterwards."
+LocFlyOverText="Extract Knowledge"
+
+[ChosenSummonFollowers X2AbilityTemplate]
+LocFriendlyName="Summon Followers"
+LocLongDescription="Summon ADVENT reinforcements to your aid. Can only be used once per battle, and only while XCOM is not engaged with other enemies."
+LocHelpText="Summon ADVENT reinforcements to your aid. Can only be used once per battle, and only while XCOM is not engaged with other enemies."
+LocFlyOverText="Summon Followers"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Chosen Assassin abilities: added localization
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[PartingSilk X2AbilityTemplate]
+LocFriendlyName="Parting Silk"
+LocLongDescription="A melee attack that pushes back and Dazes the target. If used while in Vanishing Wind, only has a chance to push back and Daze."
+LocHelpText="A melee attack that pushes back and Dazes the target. If used while in Vanishing Wind, only has a chance to push back and Daze."
+LocFlyOverText="Parting Silk"
+
+[VanishingWind X2AbilityTemplate]
+LocFriendlyName="Vanishing Wind"
+LocLongDescription="Become invisible. Lasts until flanked, damaged, or using Parting Silk. Certain status effects will also make you visible again."
+LocHelpText="Become invisible. Lasts until flanked, damaged, or using Parting Silk. Certain status effects will also make you visible again."
+LocFlyOverText="Vanishing Wind"
+
+[VanishingWindReveal X2AbilityTemplate]
+LocFriendlyName="Revealed!"
+LocFlyOverText="Revealed!"
+
+[DarkEventAbility_BendingReed X2AbilityTemplate]
+LocFriendlyName="Dark Event: Bending Reed"
+LocFlyOverText="Dark Event: Bending Reed"
+
+[BendingReed X2AbilityTemplate]
+LocFriendlyName="Bending Reed"
+LocLongDescription="Gain an extra move action after using Parting Silk."
+LocHelpText="Gain an extra move action after using Parting Silk."
+LocFlyOverText="Bending Reed"
+
+[BendingReedPassive X2AbilityTemplate]
+LocFriendlyName="Bending Reed"
+LocLongDescription="Gain an extra move action after using Parting Silk."
+LocHelpText="Gain an extra move action after using Parting Silk."
+LocFlyOverText="Bending Reed"
+
+[MountainMistGrenade X2GrenadeTemplate]
+FriendlyName="Mountain Mist"
+FriendlyNamePlural="Mountain Mist"
+BriefSummary="Blinds Units."
+TacticalText="<Bullet/> A blinding grenade."
+ThrownAbilityName="Throw Mountain Mist"
+ThrownAbilityHelpText="Throw Mountain Mist at target area, blinding all units within and severely diminishing their sight radius. Does not affect aim."
+
+[HarborWave X2AbilityTemplate]
+LocFriendlyName="Harbor Wave"
+LocLongDescription="Launch a powerful wave of psionic energy which travels through terrain. Enemies hit have a high chance to be Dazed."
+LocHelpText="Launch a powerful wave of psionic energy which travels through terrain. Enemies hit have a high chance to be Dazed."
+LocFlyOverText="Harbor Wave"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Chosen Hunter abilities: added localization
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[HunterConcussionGrenade X2GrenadeTemplate]
+FriendlyName="Concussion Grenade"
+FriendlyNamePlural="Concussion Grenades"
+BriefSummary="Concusses Units."
+TacticalText="<Bullet/> A concussing grenade."
+ThrownAbilityName="Throw Concussion Grenade"
+ThrownAbilityHelpText="Daze and knock back all hostile targets in the affected area."
+
+[HunterKillzone X2AbilityTemplate]
+LocFriendlyName="Kill Zone"
+LocLongDescription="Take a reaction shot against any enemy that moves or attacks within a cone of fire."
+LocHelpText="Enhanced squadsight overwatch in a cone of fire."
+LocFlyOverText="Kill Zone"
+
+[HunterBleedingRounds X2AmmoTemplate]
+FriendlyName="Bleeding Rounds"
+FriendlyNamePlural="Bleeding Rounds"
+BriefSummary="These rounds are designed to make the target bleed, helping the Hunter wear down his quarry."
+TacticalText="<Bullet/>Chance to make the target bleed, taking damage on the start of their turn<br>"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Chosen Warlock abilities: added localization
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[Corress X2AbilityTemplate]
+LocFriendlyName="Summon Spectral Zombie"
+LocHelpText="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocLongDescription="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocFlyOverText="Spectral Zombie"
+
+[CorressM2 X2AbilityTemplate]
+LocFriendlyName="Summon Spectral Zombies"
+LocHelpText="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocLongDescription="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocFlyOverText="Spectral Zombies"
+
+[CorressM3 X2AbilityTemplate]
+LocFriendlyName="Summon Spectral Zombies"
+LocHelpText="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocLongDescription="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocFlyOverText="Spectral Zombies"
+
+[CorressM4 X2AbilityTemplate]
+LocFriendlyName="Summon Spectral Zombies"
+LocHelpText="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocLongDescription="The Warlock summons one or more Spectral Zombies, based on his Focus level. Spectral Zombies will be summoned close to XCOM's position."
+LocFlyOverText="Spectral Zombies"
+
+; Spectral Zombies from Chosen Warlock
+
+[EngagePsiSelfDestruct X2AbilityTemplate]
+LocFriendlyName="Spectral Rupture"
+LocHelpText="Overload this unit with psionic energy, priming it to explode on a follow-up action."
+LocLongDescription="Overload this unit with psionic energy, priming it to explode on a follow-up action."
+LocFlyOverText="Spectral Rupture"
+
+[TriggerPsiSelfDestruct X2AbilityTemplate]
+LocFriendlyName="Trigger Self Destruct"
+LocLongDescription="Instruct this unit to self-destruct in an explosion of psionic energy, damaging all nearby units."
+LocHelpText="Instruct this unit to self-destruct in an explosion of psionic energy, damaging all nearby units."
