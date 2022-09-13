@@ -50,6 +50,37 @@ static function XComGameState_Player GetPlayerForTeam(ETeam TeamFlag)
     return none;
 }
 
+/// <summary>
+/// Checks whether the specified team has had a turn yet in this battle.
+/// </summary>
+static function bool HasTeamHadATurn(ETeam TeamFlag)
+{
+    local XComGameStateHistory History;
+    local XComGameStateContext_TacticalGameRule Context;
+    local XComGameState_Player PlayerState;
+    local StateObjectReference PlayerRef;
+
+    History = `XCOMHISTORY;
+
+    // Iterate history looking for a turn begin for the given team
+    foreach History.IterateContextsByClassType(class'XComGameStateContext_TacticalGameRule', Context)
+    {
+        if (Context.GameRuleType != eGameRule_PlayerTurnBegin)
+        {
+            continue;
+        }
+
+        PlayerState = XComGameState_Player(`XCOMHISTORY.GetGameStateForObjectID(Context.PlayerRef.ObjectID));
+
+        if (PlayerState.TeamFlag == TeamFlag)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static function bool IsLocalPlayer(ETeam TeamFlag)
 {
     switch (TeamFlag)

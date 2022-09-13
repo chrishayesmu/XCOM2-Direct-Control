@@ -145,7 +145,12 @@ function bool CanScamper(XComGameState_Unit UnitStateObject)
 
     if (bIsTeamPlayerControlled && !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitStateObject.ObjectID))
     {
-        return false;
+        // Only prevent scamper if the team has had a turn to position their troops; otherwise they'll just be stuck out in
+        // the open with no chance for counterplay
+        if (class'DirectControlUtils'.static.HasTeamHadATurn(UnitStateObject.GetTeam()))
+        {
+            return false;
+        }
     }
 
     // DC: same as vanilla logic but allow player-controlled units to scamper
