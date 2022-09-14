@@ -12,7 +12,7 @@ Want to see it in action? Check out a mission from the legendary Beaglerush's [u
 [h1]How does pod activation work?[/h1]
 If the player isn't controlling inactive pods, then pod activation works exactly as normal. If they are in control, then [b]pods will not scamper when activated[/b]. You don't want to set up your forces in a neat firing line, then watch them all run away from it at the first sign of trouble. The exception is that pods will scamper on the first turn of battle if activated, so that they aren't standing out in the open dumbly while XCOM guns them down.
 
-Reinforcement pods will always scamper when they spawn, and the AI controls this. That includes Advent dropships, Lost swarms, Chosen spawning in, Faceless emerging from civs, etc.
+Reinforcement pods will always scamper when they spawn, and the AI controls this. That includes Advent dropships, Lost swarms, Chosen spawning in, Faceless emerging from civs, etc. The player will gain control of them on their next full turn.
 
 [h1]How do the Chosen and Alien Rulers work?[/h1]
 The Chosen and Alien Rulers were never meant to be human-controlled, so a lot of their abilities aren't configured or localized properly by default. Direct Control updates them with proper localization text and config, so you don't have a bunch of abilities called "ERROR". Currently, localization is English only.
