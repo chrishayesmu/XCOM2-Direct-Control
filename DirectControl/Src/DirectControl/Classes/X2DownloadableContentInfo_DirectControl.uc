@@ -22,7 +22,6 @@ private static function ModifyBaseGameAbilities()
 {
     local int Index;
     local X2Effect_GrantActionPoints ActionPointsEffect;
-    local X2AbilityCost_ActionPoints ActionPointsCost;
     local X2AbilityTemplateManager AbilityMgr;
 	local X2AbilityTemplate Template;
 
@@ -31,6 +30,10 @@ private static function ModifyBaseGameAbilities()
     /////////////////////////////////////////////
     // Abilities common to all Chosen
     /////////////////////////////////////////////
+
+    // Hide the innate "cannot be killed" ability of Chosen from showing in bottom left passive list
+    Template = AbilityMgr.FindAbilityTemplate('ChosenDefeatedSustain');
+    X2Effect_Sustain(Template.AbilityTargetEffects[0]).bDisplayInUI = false;
 
     // Triggered-only ability
     Template = AbilityMgr.FindAbilityTemplate('ChosenExtractKnowledge');
@@ -63,6 +66,11 @@ private static function ModifyBaseGameAbilities()
     /////////////////////////////////////////////
     // Chosen Hunter abilities
     /////////////////////////////////////////////
+
+    // Incorrect image
+    Template = AbilityMgr.FindAbilityTemplate('Farsight');
+    Template.IconImage = "img:///UILibrary_XPACK_Common.PerkIcons.UIPerk_farsight";
+    X2Effect_Persistent(Template.AbilityTargetEffects[0]).IconImage = Template.IconImage;
 
     // The Hunter has a Killzone ability that he can't actually use, because it costs his weapon AP plus 1,
     // and his weapon AP is 2. We remove the additional AP so it's actually usable.

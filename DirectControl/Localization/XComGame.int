@@ -2,6 +2,11 @@
 ; Chosen common abilities: added localization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+[ChosenImmunities X2AbilityTemplate]
+LocFriendlyName="Chosen Immunities"
+LocLongDescription="Immune to Panic, Stun, and Disorient."
+LocHelpText="Immune to Panic, Stun, and Disorient."
+
 [ChosenKidnapMove X2AbilityTemplate]
 LocFriendlyName="Kidnap"
 LocLongDescription="Kidnap a Dazed target, capturing them and providing some intelligence on XCOM's whereabouts. The Chosen will leave the battlefield afterwards."
@@ -144,6 +149,10 @@ LocFriendlyName="Open Escape Portal"
 LocLongDescription="Summon a portal to leave the battlefield."
 LocHelpText="Summon a portal to leave the battlefield."
 LocFlyOverText="Summon Gate!"
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Viper King abilities
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; This is actually base game localization but they mistakenly called it EndBind like the normal Viper one
 [KingEndBind X2AbilityTemplate]
