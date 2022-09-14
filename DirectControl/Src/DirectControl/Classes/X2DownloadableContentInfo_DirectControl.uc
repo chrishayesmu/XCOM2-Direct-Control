@@ -25,6 +25,8 @@ private static function ModifyBaseGameAbilities()
     local X2AbilityTemplateManager AbilityMgr;
 	local X2AbilityTemplate Template;
 
+    `DC_LOG("Modifying base game abilities for greater compatibility with Direct Control..");
+
     AbilityMgr = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager();
 
     /////////////////////////////////////////////
@@ -113,6 +115,14 @@ private static function ModifyBaseGameAbilities()
 
     // Incorrect image
     Template = AbilityMgr.FindAbilityTemplate('AlienRulerCallForEscape');
+
+    // Need to make sure Alien Hunters is installed/enabled before we access its templates
+    if (Template == none)
+    {
+        `DC_LOG("Alien Hunters DLC doesn't appear to be installed. Ending template modification here.");
+        return;
+    }
+
     Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_adventpsiwitch_dimensionrift";
 
     /////////////////////////////////////////////
