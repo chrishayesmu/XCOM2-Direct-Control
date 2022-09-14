@@ -1,5 +1,5 @@
 class DirectControlConfigDefaults extends Object
-    config(DirectControlConfigDefaults);
+    config(DirectControlDefaults);
 
 var config int ConfigVersion;
 
