@@ -21,6 +21,8 @@ static event OnPostTemplatesCreated()
 private static function ModifyBaseGameAbilities()
 {
     local int Index;
+    local X2Effect_GrantActionPoints ActionPointsEffect;
+    local X2AbilityCost_ActionPoints ActionPointsCost;
     local X2AbilityTemplateManager AbilityMgr;
 	local X2AbilityTemplate Template;
 
@@ -96,6 +98,78 @@ private static function ModifyBaseGameAbilities()
     // Only available when Spectral Army is active
     Template = AbilityMgr.FindAbilityTemplate('EndSpectralArmy');
 	Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_ShowIfAvailable;
+
+    /////////////////////////////////////////////
+    // Abilities common to all Rulers
+    /////////////////////////////////////////////
+
+    // Incorrect image
+    Template = AbilityMgr.FindAbilityTemplate('AlienRulerCallForEscape');
+    Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_adventpsiwitch_dimensionrift";
+
+    /////////////////////////////////////////////
+    // Archon King abilities
+    /////////////////////////////////////////////
+
+    Template = AbilityMgr.FindAbilityTemplate('IcarusDropSlam');
+	Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_ShowIfAvailable;
+
+    /////////////////////////////////////////////
+    // Berserker Queen abilities
+    /////////////////////////////////////////////
+
+    Template = AbilityMgr.FindAbilityTemplate('QueenDevastatingPunch');
+    Template.ShotHUDPriority = 0;
+
+    Template = AbilityMgr.FindAbilityTemplate('Quake');
+	Template.IconImage = "img:///UILibrary_DLC2Images.UIPerk_beserker_quake";
+    Template.ShotHUDPriority = 1;
+
+    Template = AbilityMgr.FindAbilityTemplate('Faithbreaker');
+    Template.ShotHUDPriority = 2;
+
+    /////////////////////////////////////////////
+    // Viper King abilities
+    /////////////////////////////////////////////
+
+	// Bind is misconfigured and doesn't give an AP that can be used to end it, like regular Viper bind does
+	ActionPointsEffect = new class'X2Effect_GrantActionPoints';
+	ActionPointsEffect.NumActionPoints = 1;
+	ActionPointsEffect.PointType = class'X2CharacterTemplateManager'.default.EndBindActionPoint;
+
+    // Viper King bind is set up wrong in a few ways
+    Template = AbilityMgr.FindAbilityTemplate('KingBind');
+	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_viper_bind";
+	Template.AddShooterEffect(ActionPointsEffect);
+    FixViperKingBind(Template);
+
+    // The sustained version of the bind is also incorrect; it has an AP cost, which prevents it from firing
+    Template = AbilityMgr.FindAbilityTemplate('KingBindSustained');
+	Template.AddShooterEffect(ActionPointsEffect);
+    Template.AbilityTriggers.AddItem(new class'X2AbilityTrigger_SustainedEffect');
+    Template.AbilityCosts.Length = 0;
+    RemoveInputTriggersOfType(Template, 'X2AbilityTrigger_PlayerInput');
+
+    // Incorrect image
+    Template = AbilityMgr.FindAbilityTemplate('Frostbite');
+	Template.IconImage = "img:///UILibrary_DLC2Images.UIPerk_freezingbreath";
+}
+
+private static function FixViperKingBind(X2AbilityTemplate Template)
+{
+    local int Index;
+    local X2Effect_ViperBindSustained SustainedEffect;
+
+    // Seems like they forgot to put the ability name on the bind effect, so it always ends after one turn
+    for (Index = 0; Index < Template.AbilityTargetEffects.Length; Index++)
+    {
+        SustainedEffect = X2Effect_ViperBindSustained(Template.AbilityTargetEffects[Index]);
+
+        if (SustainedEffect != none)
+        {
+            SustainedEffect.SustainedAbilityName = 'KingBindSustained';
+        }
+    }
 }
 
 private static function RemoveInputTriggersOfType(X2AbilityTemplate Template, name TriggerType)

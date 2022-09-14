@@ -58,7 +58,6 @@ static function bool HasTeamHadATurn(ETeam TeamFlag)
     local XComGameStateHistory History;
     local XComGameStateContext_TacticalGameRule Context;
     local XComGameState_Player PlayerState;
-    local StateObjectReference PlayerRef;
 
     History = `XCOMHISTORY;
 

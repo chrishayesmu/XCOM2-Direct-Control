@@ -134,3 +134,23 @@ LocFlyOverText="Spectral Rupture"
 LocFriendlyName="Trigger Self Destruct"
 LocLongDescription="Instruct this unit to self-destruct in an explosion of psionic energy, damaging all nearby units."
 LocHelpText="Instruct this unit to self-destruct in an explosion of psionic energy, damaging all nearby units."
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Alien Ruler common abilities: added localization
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[AlienRulerCallForEscape X2AbilityTemplate]
+LocFriendlyName="Open Escape Portal"
+LocLongDescription="Summon a portal to leave the battlefield."
+LocHelpText="Summon a portal to leave the battlefield."
+LocFlyOverText="Summon Gate!"
+
+; This is actually base game localization but they mistakenly called it EndBind like the normal Viper one
+[KingEndBind X2AbilityTemplate]
+LocFriendlyName="Release Bind"
+LocLongDescription="In the event the tactical situation changes, the Viper can release the target in its coils before killing it."
+LocHelpText="Release the target in the Viper's coils"
+LocFlyOverText="Release"
+
+[KingGetOverHere X2AbilityTemplate]
+LocHelpText="Grab a target with your tongue, pull them to melee range, and immediately Choke them if Choke is available. Only humanoid targets can be pulled."
