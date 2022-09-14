@@ -1,9 +1,11 @@
 Allows PvP campaign battles by giving full control of AI to the player. [b]This is [u]local multiplayer only[/u], not online! To play online, you will need to use a screen sharing application such as [url=https://parsec.app/]Parsec[/url].[/b]
 
+If you want, you can also use this for a single player campaign, and just use Direct Control to let you control Resistance units.
+
 [h1]How it works[/h1]
 Direct Control overrides the game's logic so that, when XCOM's turn ends, the player remains in control and takes over the enemy forces. You control them just like XCOM's soldiers - you see what they see, decide where they go, and pick who they shoot. At this point, you hand control over to your opponent and watch them scheme against you.
 
-You have options for which teams are controlled (Aliens and/or The Lost for now), and whether the player controls unactivated pods or not. If not, inactive pods will follow their normal AI, including any AI mods you have on.
+You have options for which teams are controlled (Aliens, the Lost, and the Resistance), and whether the player controls unactivated pods or not. If not, inactive pods will follow their normal AI, including any AI mods you have on.
 
 There are a few places where enemy gameplay isn't identical to XCOM's; make sure to check out the [url=https://steamcommunity.com/workshop/filedetails/discussion/2862951793/3473986888163595252/]Known Issues[/url] thread.
 
@@ -13,6 +15,8 @@ Want to see it in action? Check out a mission from the legendary Beaglerush's [u
 If the player isn't controlling inactive pods, then pod activation works exactly as normal. If they are in control, then [b]pods will not scamper when activated[/b]. You don't want to set up your forces in a neat firing line, then watch them all run away from it at the first sign of trouble. The exception is that pods will scamper on the first turn of battle if activated, so that they aren't standing out in the open dumbly while XCOM guns them down.
 
 Reinforcement pods will always scamper when they spawn, and the AI controls this. That includes Advent dropships, Lost swarms, Chosen spawning in, Faceless emerging from civs, etc. The player will gain control of them on their next full turn.
+
+For the Resistance, pods are considered inactive until being spotted by XCOM (like enemies), even though they're in active combat.
 
 [h1]How do the Chosen and Alien Rulers work?[/h1]
 The Chosen and Alien Rulers were never meant to be human-controlled, so a lot of their abilities aren't configured or localized properly by default. Direct Control updates them with proper localization text and config, so you don't have a bunch of abilities called "ERROR". Currently, localization is English only.
@@ -38,6 +42,7 @@ These are the overridden classes:
 
 [code]
 XGAIPlayer
+XGAIPlayer_Resistance
 XGAIPlayer_TheLost
 XComTacticalController
 X2VisibilityObserver

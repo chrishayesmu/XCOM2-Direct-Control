@@ -10,6 +10,9 @@ var config int ConfigVersion;
 var config bool bPlayerControlsAlienTurn;
 var config bool bPlayerControlsUnactivatedAliens;
 
+var config bool bPlayerControlsResistanceTurn;
+var config bool bPlayerControlsUnactivatedResistance;
+
 var config bool bPlayerControlsLostTurn;
 var config bool bPlayerControlsUnactivatedLost;
 

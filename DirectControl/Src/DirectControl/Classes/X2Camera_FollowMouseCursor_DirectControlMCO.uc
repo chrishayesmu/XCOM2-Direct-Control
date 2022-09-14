@@ -200,35 +200,5 @@ private function bool ControllingPlayerIsAI(XComGameState_Unit UnitState)
         return false;
     }
 
-    if (UnitState.GetTeam() == eTeam_Alien)
-    {
-        if (!`DC_CFG(bPlayerControlsAlienTurn))
-        {
-            return true;
-        }
-
-        if (!`DC_CFG(bPlayerControlsUnactivatedAliens) && UnitState.IsUnrevealedAI())
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    if (UnitState.GetTeam() == eTeam_TheLost)
-    {
-        if (!`DC_CFG(bPlayerControlsLostTurn))
-        {
-            return true;
-        }
-
-        if (!`DC_CFG(bPlayerControlsUnactivatedLost) && UnitState.IsUnrevealedAI())
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    return true;
+	return !class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitState);
 }

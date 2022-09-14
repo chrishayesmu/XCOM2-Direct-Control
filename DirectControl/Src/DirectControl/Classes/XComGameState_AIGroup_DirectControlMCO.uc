@@ -134,8 +134,7 @@ function bool CanScamper(XComGameState_Unit UnitStateObject)
     // If the player is responsible for controlling inactive units, and these aren't reinforcements, don't scamper.
     // Reinforcements are allowed to scamper because they otherwise have no action points and won't be controllable
     // on the turn that they spawn.
-    bIsTeamPlayerControlled = (`DC_CFG(bPlayerControlsAlienTurn) && `DC_CFG(bPlayerControlsUnactivatedAliens) && UnitStateObject.GetTeam() == eTeam_Alien)
-                           || (`DC_CFG(bPlayerControlsLostTurn)  && `DC_CFG(bPlayerControlsUnactivatedLost)   && UnitStateObject.GetTeam() == eTeam_TheLost);
+    bIsTeamPlayerControlled = class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitStateObject);
 
     if (bIsTeamPlayerControlled && UnitStateObject.IsChosen() && !class'DirectControlUtils'.static.IsUnitSpawnedAsReinforcements(UnitStateObject.ObjectID))
     {

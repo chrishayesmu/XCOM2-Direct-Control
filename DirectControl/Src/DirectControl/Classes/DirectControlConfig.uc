@@ -10,6 +10,9 @@ var config int ConfigVersion;
 var config bool bPlayerControlsAlienTurn;
 var config bool bPlayerControlsUnactivatedAliens;
 
+var config bool bPlayerControlsResistanceTurn;
+var config bool bPlayerControlsUnactivatedResistance;
+
 var config bool bPlayerControlsLostTurn;
 var config bool bPlayerControlsUnactivatedLost;
 
@@ -37,6 +40,10 @@ var const localized string strLabelPlayerControlsAlienTurn;
 var const localized string strTooltipPlayerControlsAlienTurn;
 var const localized string strLabelPlayerControlsUnactivatedAliens;
 var const localized string strTooltipPlayerControlsUnactivatedAliens;
+var const localized string strLabelPlayerControlsResistanceTurn;
+var const localized string strTooltipPlayerControlsResistanceTurn;
+var const localized string strLabelPlayerControlsUnactivatedResistance;
+var const localized string strTooltipPlayerControlsUnactivatedResistance;
 var const localized string strLabelPlayerControlsLostTurn;
 var const localized string strTooltipPlayerControlsLostTurn;
 var const localized string strLabelPlayerControlsUnactivatedLost;
@@ -84,6 +91,8 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
     Group = Page.AddGroup('DirectControlGeneralSettings', strGeneralGroupHeader);
     Group.AddCheckbox(nameof(bPlayerControlsAlienTurn),         strLabelPlayerControlsAlienTurn,         strTooltipPlayerControlsAlienTurn,         bPlayerControlsAlienTurn,         PlayerControlsAlienTurnSaveHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedAliens), strLabelPlayerControlsUnactivatedAliens, strTooltipPlayerControlsUnactivatedAliens, bPlayerControlsUnactivatedAliens, PlayerControlsUnactivatedAliensTurnSaveHandler);
+    Group.AddCheckbox(nameof(bPlayerControlsResistanceTurn),    strLabelPlayerControlsResistanceTurn,    strTooltipPlayerControlsResistanceTurn,    bPlayerControlsResistanceTurn,    PlayerControlsResistanceTurnSaveHandler);
+    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedResistance), strLabelPlayerControlsUnactivatedResistance, strTooltipPlayerControlsUnactivatedResistance, bPlayerControlsUnactivatedResistance, PlayerControlsUnactivatedResistanceTurnSaveHandler);
     Group.AddCheckbox(nameof(bPlayerControlsLostTurn),          strLabelPlayerControlsLostTurn,          strTooltipPlayerControlsLostTurn,          bPlayerControlsLostTurn,          PlayerControlsLostTurnSaveHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedLost),   strLabelPlayerControlsUnactivatedLost,   strTooltipPlayerControlsUnactivatedLost,   bPlayerControlsUnactivatedLost,   PlayerControlsUnactivatedLostTurnSaveHandler);
     Group.AddCheckbox(nameof(bForceControlledUnitsToRun),       strLabelForceControlledUnitsToRun,       strTooltipForceControlledUnitsToRun,       bForceControlledUnitsToRun,       ForceInactiveUnitsToRunSaveHandler);
@@ -142,6 +151,8 @@ private function SaveButtonClicked(MCM_API_SettingsPage Page)
 
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsAlienTurnSaveHandler, bPlayerControlsAlienTurn);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedAliensTurnSaveHandler, bPlayerControlsUnactivatedAliens);
+`MCM_API_BasicCheckboxSaveHandler(PlayerControlsResistanceTurnSaveHandler, bPlayerControlsResistanceTurn);
+`MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedResistanceTurnSaveHandler, bPlayerControlsUnactivatedResistance);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsLostTurnSaveHandler, bPlayerControlsLostTurn);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedLostTurnSaveHandler, bPlayerControlsUnactivatedLost);
 `MCM_API_BasicCheckboxSaveHandler(ForceInactiveUnitsToRunSaveHandler, bForceControlledUnitsToRun);
