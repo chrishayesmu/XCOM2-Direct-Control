@@ -94,6 +94,7 @@ event OnInit(UIScreen Screen)
 
 function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 {
+    local MCM_API_Setting Setting;
     local MCM_API_SettingsPage Page;
     local MCM_API_SettingsGroup Group;
 
@@ -102,22 +103,37 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
     Page = ConfigAPI.NewSettingsPage(strPageHeader);
     Page.SetSaveHandler(SaveButtonClicked);
 
+    // Group: general settings
     Group = Page.AddGroup('DirectControlGeneralSettings', strGeneralGroupHeader);
-    Group.AddCheckbox(nameof(bPlayerControlsAlienTurn),             strLabelPlayerControlsAlienTurn,             strTooltipPlayerControlsAlienTurn,             bPlayerControlsAlienTurn,             PlayerControlsAlienTurnSaveHandler);
+
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsAlienTurn),             strLabelPlayerControlsAlienTurn,             strTooltipPlayerControlsAlienTurn,             bPlayerControlsAlienTurn,             PlayerControlsAlienTurnSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedAliens),     strLabelPlayerControlsUnactivatedAliens,     strTooltipPlayerControlsUnactivatedAliens,     bPlayerControlsUnactivatedAliens,     PlayerControlsUnactivatedAliensTurnSaveHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsResistanceTurn),        strLabelPlayerControlsResistanceTurn,        strTooltipPlayerControlsResistanceTurn,        bPlayerControlsResistanceTurn,        PlayerControlsResistanceTurnSaveHandler);
+    DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsAlienTurn);
+
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsResistanceTurn),        strLabelPlayerControlsResistanceTurn,        strTooltipPlayerControlsResistanceTurn,        bPlayerControlsResistanceTurn,        PlayerControlsResistanceTurnSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedResistance), strLabelPlayerControlsUnactivatedResistance, strTooltipPlayerControlsUnactivatedResistance, bPlayerControlsUnactivatedResistance, PlayerControlsUnactivatedResistanceTurnSaveHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsLostTurn),              strLabelPlayerControlsLostTurn,              strTooltipPlayerControlsLostTurn,              bPlayerControlsLostTurn,              PlayerControlsLostTurnSaveHandler);
+    DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsResistanceTurn);
+
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsLostTurn),              strLabelPlayerControlsLostTurn,              strTooltipPlayerControlsLostTurn,              bPlayerControlsLostTurn,              PlayerControlsLostTurnSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedLost),       strLabelPlayerControlsUnactivatedLost,       strTooltipPlayerControlsUnactivatedLost,       bPlayerControlsUnactivatedLost,       PlayerControlsUnactivatedLostTurnSaveHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsTeamOneTurn),           strLabelPlayerControlsTeamOneTurn,           strTooltipPlayerControlsTeamOneTurn,           bPlayerControlsTeamOneTurn,           PlayerControlsTeamOneTurnSaveHandler);
+    DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsLostTurn);
+
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsTeamOneTurn),           strLabelPlayerControlsTeamOneTurn,           strTooltipPlayerControlsTeamOneTurn,           bPlayerControlsTeamOneTurn,           PlayerControlsTeamOneTurnSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedTeamOne),    strLabelPlayerControlsUnactivatedTeamOne,    strTooltipPlayerControlsUnactivatedTeamOne,    bPlayerControlsUnactivatedTeamOne,    PlayerControlsUnactivatedTeamOneTurnSaveHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsTeamTwoTurn),           strLabelPlayerControlsTeamTwoTurn,           strTooltipPlayerControlsTeamTwoTurn,           bPlayerControlsTeamTwoTurn,           PlayerControlsTeamTwoTurnSaveHandler);
+    DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsTeamOneTurn);
+
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsTeamTwoTurn),           strLabelPlayerControlsTeamTwoTurn,           strTooltipPlayerControlsTeamTwoTurn,           bPlayerControlsTeamTwoTurn,           PlayerControlsTeamTwoTurnSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedTeamTwo),    strLabelPlayerControlsUnactivatedTeamTwo,    strTooltipPlayerControlsUnactivatedTeamTwo,    bPlayerControlsUnactivatedTeamTwo,    PlayerControlsUnactivatedTeamTwoTurnSaveHandler);
+    DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsTeamTwoTurn);
+
     Group.AddCheckbox(nameof(bForceControlledUnitsToRun),           strLabelForceControlledUnitsToRun,           strTooltipForceControlledUnitsToRun,           bForceControlledUnitsToRun,           ForceInactiveUnitsToRunSaveHandler);
 
+    // Group: turn timer settings
     Group = Page.AddGroup('DirectControlTurnTimerSettings', strTurnTimerGroupHeader);
-    Group.AddCheckbox(nameof(bShowTurnTimer),            strLabelTurnTimerEnabled,         strTooltipTurnTimerEnabled,         bShowTurnTimer,            TurnTimerEnabledSaveHandler);
+
+    Setting = Group.AddCheckbox(nameof(bShowTurnTimer),            strLabelTurnTimerEnabled,         strTooltipTurnTimerEnabled,         bShowTurnTimer,            TurnTimerEnabledSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bTurnTimerShowsActiveTeam), strLabelTurnTimerShowsActiveTeam, strTooltipTurnTimerShowsActiveTeam, bTurnTimerShowsActiveTeam, TurnTimerShowsTeamSaveHandler);
+    DisableNextSettingWhenFalseHandler(Setting, bShowTurnTimer);
 
     if (class'DirectControlUtils'.static.IsModActive('WOTCAdventReinforcements'))
     {
@@ -129,12 +145,65 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 
 private function AddSubmodSettings_AdventReinforcements(MCM_API_SettingsPage Page)
 {
+    local MCM_API_Setting Setting;
     local MCM_API_SettingsGroup Group;
 
     Group = Page.AddGroup('DirectControlSubmodSettings_AdventReinforcements', strAdventReinforcementsGroupHeader);
-    Group.AddCheckbox(nameof(bAdventReinforcements_EnableSubmod),                strLabelAdventReinforcementsEnabled,        strTooltipAdventReinforcementsEnabled,                  bAdventReinforcements_EnableSubmod,                AdventReinforcements_EnableSubmodSaveHandler);
+
+    Setting = Group.AddCheckbox(nameof(bAdventReinforcements_EnableSubmod),      strLabelAdventReinforcementsEnabled,        strTooltipAdventReinforcementsEnabled,                  bAdventReinforcements_EnableSubmod,                AdventReinforcements_EnableSubmodSaveHandler, DisableNextTwoSettingsWhenFalseHandler);
     Group.AddCheckbox(nameof(bAdventReinforcements_RequireSquadLosToTargetTile), strLabelAdventReinforcementsRequireLos,     strTooltipAdventReinforcementsRequireLos,               bAdventReinforcements_RequireSquadLosToTargetTile, AdventReinforcements_RequireSquadLosSaveHandler);
     Group.AddSlider(nameof(fAdventReinforcements_ReinforcementPlacementRange),   strLabelAdventReinforcementsPlacementRange, strTooltipAdventReinforcementsPlacementRange, 0, 50, 1, fAdventReinforcements_ReinforcementPlacementRange, AdventReinforcements_PlacementRangeSaveHandler);
+    DisableNextTwoSettingsWhenFalseHandler(Setting, bAdventReinforcements_EnableSubmod);
+}
+
+private function DisableNextSettingWhenFalseHandler(MCM_API_Setting Setting, bool Value)
+{
+    local int Index;
+    local MCM_API_Setting CurrentSetting;
+    local MCM_API_SettingsGroup ParentGroup;
+
+    ParentGroup = Setting.GetParentGroup();
+
+    for (Index = 0; Index < ParentGroup.GetNumberOfSettings(); Index++)
+    {
+        CurrentSetting = ParentGroup.GetSettingByIndex(Index);
+
+        if (CurrentSetting != Setting)
+        {
+            continue;
+        }
+
+        CurrentSetting = ParentGroup.GetSettingByIndex(Index + 1);
+        CurrentSetting.SetEditable(Value);
+        return;
+    }
+}
+
+private function DisableNextTwoSettingsWhenFalseHandler(MCM_API_Setting Setting, bool Value)
+{
+    local int Index;
+    local MCM_API_Setting CurrentSetting;
+    local MCM_API_SettingsGroup ParentGroup;
+
+    ParentGroup = Setting.GetParentGroup();
+
+    for (Index = 0; Index < ParentGroup.GetNumberOfSettings(); Index++)
+    {
+        CurrentSetting = ParentGroup.GetSettingByIndex(Index);
+
+        if (CurrentSetting != Setting)
+        {
+            continue;
+        }
+
+        CurrentSetting = ParentGroup.GetSettingByIndex(Index + 1);
+        CurrentSetting.SetEditable(Value);
+
+        CurrentSetting = ParentGroup.GetSettingByIndex(Index + 2);
+        CurrentSetting.SetEditable(Value);
+
+        return;
+    }
 }
 
 private function LoadSavedSettings()
