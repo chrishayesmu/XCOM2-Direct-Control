@@ -14,6 +14,8 @@ var const localized string strTimerTextWithoutTeam;
 var const localized string strAlienTurn;
 var const localized string strLostTurn;
 var const localized string strResistanceTurn;
+var const localized string strTeamOneTurn;
+var const localized string strTeamTwoTurn;
 var const localized string strXComTurn;
 
 var private UIBGBox m_bgBox;
@@ -128,6 +130,8 @@ private function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object 
 
     PlayerState = XComGameState_Player(EventSource);
 
+    `DC_LOG("Player turn changed to team " $ PlayerState.TeamFlag);
+
     if (!class'DirectControlUtils'.static.IsLocalPlayer(PlayerState.TeamFlag))
     {
         Hide();
@@ -144,6 +148,8 @@ private function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object 
 
 private function SetActiveTeamText(optional XComGameState_Player PlayerState)
 {
+	local XComLWTuple OverrideTuple;
+
     if (PlayerState == none)
     {
         PlayerState = class'DirectControlUtils'.static.GetActivePlayer();
@@ -159,6 +165,14 @@ private function SetActiveTeamText(optional XComGameState_Player PlayerState)
             m_strActiveTeam = strResistanceTurn;
             m_strActiveTeamColor = class'UIUtilities_Colors'.static.ConvertWidgetColorToHTML(eColor_Xcom);
             break;
+        case eTeam_One:
+            m_strActiveTeam = strTeamOneTurn;
+            m_strActiveTeamColor = class'UIUtilities_Colors'.static.ConvertWidgetColorToHTML(eColor_White);
+            break;
+        case eTeam_Two:
+            m_strActiveTeam = strTeamTwoTurn;
+            m_strActiveTeamColor = class'UIUtilities_Colors'.static.ConvertWidgetColorToHTML(eColor_White);
+            break;
         case eTeam_TheLost:
             m_strActiveTeam = strLostTurn;
             m_strActiveTeamColor = class'UIUtilities_Colors'.static.ConvertWidgetColorToHTML(eColor_TheLost);
@@ -172,6 +186,25 @@ private function SetActiveTeamText(optional XComGameState_Player PlayerState)
             m_strActiveTeamColor = "";
             break;
     }
+
+    // Give mods a chance to override what we show, especially if they add new teams
+    OverrideTuple = new class'XComLWTuple';
+	OverrideTuple.Id = 'DirectControl_OverrideTeamNameAndColor';
+	OverrideTuple.Data.Add(3);
+
+	OverrideTuple.Data[0].kind = XComLWTVString;
+    OverrideTuple.Data[0].s = m_strActiveTeam;
+
+    OverrideTuple.Data[1].kind = XComLWTVString;
+    OverrideTuple.Data[1].s = m_strActiveTeamColor;
+
+    OverrideTuple.Data[2].kind = XComLWTVObject;
+    OverrideTuple.Data[2].o = PlayerState;
+
+	`XEVENTMGR.TriggerEvent('DirectControl_OverrideTeamNameAndColor', OverrideTuple, PlayerState, none);
+
+    m_strActiveTeam = OverrideTuple.Data[0].s;
+    m_strActiveTeamColor = OverrideTuple.Data[1].s;
 }
 
 private function bool ShouldShow()

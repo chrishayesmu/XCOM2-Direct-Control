@@ -92,6 +92,10 @@ static function bool IsLocalPlayer(ETeam TeamFlag)
             return `DC_CFG(bPlayerControlsResistanceTurn);
         case eTeam_TheLost:
             return `DC_CFG(bPlayerControlsLostTurn);
+        case eTeam_One:
+            return `DC_CFG(bPlayerControlsTeamOneTurn);
+        case eTeam_Two:
+            return `DC_CFG(bPlayerControlsTeamTwoTurn);
         default:
             return false;
     }
@@ -133,6 +137,10 @@ static function bool IsPlayerControllingUnit(XComGameState_Unit UnitState)
                 return `DC_CFG(bPlayerControlsUnactivatedResistance);
             case eTeam_TheLost:
                 return `DC_CFG(bPlayerControlsUnactivatedLost);
+            case eTeam_One:
+                return `DC_CFG(bPlayerControlsUnactivatedTeamOne);
+            case eTeam_Two:
+                return `DC_CFG(bPlayerControlsUnactivatedTeamTwo);
             default:
                 return false;
         }

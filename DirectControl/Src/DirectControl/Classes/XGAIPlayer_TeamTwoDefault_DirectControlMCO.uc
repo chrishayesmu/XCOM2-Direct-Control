@@ -1,0 +1,3 @@
+class XGAIPlayer_TeamTwoDefault_DirectControlMCO extends XGAIPlayer_TeamTwoDefault;
+
+`include(DirectControl/Src/DirectControl/generate_xgaiplayer.uci)

@@ -16,6 +16,12 @@ var config bool bPlayerControlsUnactivatedResistance;
 var config bool bPlayerControlsLostTurn;
 var config bool bPlayerControlsUnactivatedLost;
 
+var config bool bPlayerControlsTeamOneTurn;
+var config bool bPlayerControlsUnactivatedTeamOne;
+
+var config bool bPlayerControlsTeamTwoTurn;
+var config bool bPlayerControlsUnactivatedTeamTwo;
+
 var config bool bForceControlledUnitsToRun;
 
 /////////////////////////////////////////////////

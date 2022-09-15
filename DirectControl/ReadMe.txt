@@ -23,6 +23,11 @@ The Chosen and Alien Rulers were never meant to be human-controlled, so a lot of
 
 [b]Note:[/b] while Alien Rulers do work, the human player does not control their Ruler Reactions. The AI will still be in charge of those.
 
+[h1]Can I control modded teams, such as MOCX or Raider factions?[/h1]
+Yes! There are two options in the mod settings for controlling "Team One" and "Team Two" units. These two teams are used by mods to add new factions which are hostile to everyone else (XCOM, ADVENT, Resistance, Lost, and Civilians).
+
+[b]Be warned:[/b] enemies from these mods may not have been intended for player control. Accordingly, they might be missing localization for their abilities, and might have abilities visible in the HUD which shouldn't be there. There's not much I can do about that from my side, but those mod authors can update on their end if they wish.
+
 [h1]Can I remove this mod mid-campaign?[/h1]
 Yes, but only when loading a save from the Geoscape. If you remove this mod and try to load a mid-battle save, your game will crash.
 
@@ -43,6 +48,8 @@ These are the overridden classes:
 [code]
 XGAIPlayer
 XGAIPlayer_Resistance
+XGAIPlayer_TeamOneDefault
+XGAIPlayer_TeamTwoDefault
 XGAIPlayer_TheLost
 XComTacticalController
 X2VisibilityObserver

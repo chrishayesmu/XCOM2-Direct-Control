@@ -62,7 +62,6 @@ simulated function Visualizer_ReleaseControl()
 {
 	local array<XComGameState_Unit> Units;
 	local int CurrentSelectedIndex;
-	local bool bAllowSelectAllActive;
 
 	// Mark all units we control as inactive
 	ControllingPlayerVisualizer.GetUnits(Units);
@@ -71,13 +70,7 @@ simulated function Visualizer_ReleaseControl()
 		XGUnit(Units[CurrentSelectedIndex].GetVisualizer()).GotoState('Inactive');
 	}
 
-	// Sets the state of XComTacticalInput, which maps mouse/kb/controller inputs to game engine methods
-    // TODO: change input state based on which team's turn is next
-	bAllowSelectAllActive = `CHEATMGR != None && `CHEATMGR.bAllowSelectAll;
-	if( !bAllowSelectAllActive )
-	{
-		//SetInputState('Multiplayer_Inactive');
-	}
+	// DC: remove logic for changing the input state based on the team; unneeded for us
 
 	// Resetting this to 0 stops the ability containers getting updated for a unit that is just going to be switched off of again
 	ControllingUnit.ObjectID = 0;
