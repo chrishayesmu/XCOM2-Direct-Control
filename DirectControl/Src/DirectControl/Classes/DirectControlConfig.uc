@@ -106,32 +106,32 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
     // Group: general settings
     Group = Page.AddGroup('DirectControlGeneralSettings', strGeneralGroupHeader);
 
-    Setting = Group.AddCheckbox(nameof(bPlayerControlsAlienTurn),             strLabelPlayerControlsAlienTurn,             strTooltipPlayerControlsAlienTurn,             bPlayerControlsAlienTurn,             PlayerControlsAlienTurnSaveHandler, DisableNextSettingWhenFalseHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedAliens),     strLabelPlayerControlsUnactivatedAliens,     strTooltipPlayerControlsUnactivatedAliens,     bPlayerControlsUnactivatedAliens,     PlayerControlsUnactivatedAliensTurnSaveHandler);
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsAlienTurn), strLabelPlayerControlsAlienTurn,         strTooltipPlayerControlsAlienTurn,         bPlayerControlsAlienTurn,         PlayerControlsAlienTurnSaveHandler, DisableNextSettingWhenFalseHandler);
+    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedAliens),   strLabelPlayerControlsUnactivatedAliens, strTooltipPlayerControlsUnactivatedAliens, bPlayerControlsUnactivatedAliens, PlayerControlsUnactivatedAliensTurnSaveHandler);
     DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsAlienTurn);
 
-    Setting = Group.AddCheckbox(nameof(bPlayerControlsResistanceTurn),        strLabelPlayerControlsResistanceTurn,        strTooltipPlayerControlsResistanceTurn,        bPlayerControlsResistanceTurn,        PlayerControlsResistanceTurnSaveHandler, DisableNextSettingWhenFalseHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedResistance), strLabelPlayerControlsUnactivatedResistance, strTooltipPlayerControlsUnactivatedResistance, bPlayerControlsUnactivatedResistance, PlayerControlsUnactivatedResistanceTurnSaveHandler);
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsResistanceTurn), strLabelPlayerControlsResistanceTurn,        strTooltipPlayerControlsResistanceTurn,        bPlayerControlsResistanceTurn,        PlayerControlsResistanceTurnSaveHandler, DisableNextSettingWhenFalseHandler);
+    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedResistance),    strLabelPlayerControlsUnactivatedResistance, strTooltipPlayerControlsUnactivatedResistance, bPlayerControlsUnactivatedResistance, PlayerControlsUnactivatedResistanceTurnSaveHandler);
     DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsResistanceTurn);
 
-    Setting = Group.AddCheckbox(nameof(bPlayerControlsLostTurn),              strLabelPlayerControlsLostTurn,              strTooltipPlayerControlsLostTurn,              bPlayerControlsLostTurn,              PlayerControlsLostTurnSaveHandler, DisableNextSettingWhenFalseHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedLost),       strLabelPlayerControlsUnactivatedLost,       strTooltipPlayerControlsUnactivatedLost,       bPlayerControlsUnactivatedLost,       PlayerControlsUnactivatedLostTurnSaveHandler);
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsLostTurn), strLabelPlayerControlsLostTurn,        strTooltipPlayerControlsLostTurn,        bPlayerControlsLostTurn,        PlayerControlsLostTurnSaveHandler, DisableNextSettingWhenFalseHandler);
+    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedLost),    strLabelPlayerControlsUnactivatedLost, strTooltipPlayerControlsUnactivatedLost, bPlayerControlsUnactivatedLost, PlayerControlsUnactivatedLostTurnSaveHandler);
     DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsLostTurn);
 
-    Setting = Group.AddCheckbox(nameof(bPlayerControlsTeamOneTurn),           strLabelPlayerControlsTeamOneTurn,           strTooltipPlayerControlsTeamOneTurn,           bPlayerControlsTeamOneTurn,           PlayerControlsTeamOneTurnSaveHandler, DisableNextSettingWhenFalseHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedTeamOne),    strLabelPlayerControlsUnactivatedTeamOne,    strTooltipPlayerControlsUnactivatedTeamOne,    bPlayerControlsUnactivatedTeamOne,    PlayerControlsUnactivatedTeamOneTurnSaveHandler);
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsTeamOneTurn), strLabelPlayerControlsTeamOneTurn,        strTooltipPlayerControlsTeamOneTurn,        bPlayerControlsTeamOneTurn,        PlayerControlsTeamOneTurnSaveHandler, DisableNextSettingWhenFalseHandler);
+    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedTeamOne),    strLabelPlayerControlsUnactivatedTeamOne, strTooltipPlayerControlsUnactivatedTeamOne, bPlayerControlsUnactivatedTeamOne, PlayerControlsUnactivatedTeamOneTurnSaveHandler);
     DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsTeamOneTurn);
 
-    Setting = Group.AddCheckbox(nameof(bPlayerControlsTeamTwoTurn),           strLabelPlayerControlsTeamTwoTurn,           strTooltipPlayerControlsTeamTwoTurn,           bPlayerControlsTeamTwoTurn,           PlayerControlsTeamTwoTurnSaveHandler, DisableNextSettingWhenFalseHandler);
-    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedTeamTwo),    strLabelPlayerControlsUnactivatedTeamTwo,    strTooltipPlayerControlsUnactivatedTeamTwo,    bPlayerControlsUnactivatedTeamTwo,    PlayerControlsUnactivatedTeamTwoTurnSaveHandler);
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsTeamTwoTurn), strLabelPlayerControlsTeamTwoTurn,        strTooltipPlayerControlsTeamTwoTurn,        bPlayerControlsTeamTwoTurn,        PlayerControlsTeamTwoTurnSaveHandler, DisableNextSettingWhenFalseHandler);
+    Group.AddCheckbox(nameof(bPlayerControlsUnactivatedTeamTwo),    strLabelPlayerControlsUnactivatedTeamTwo, strTooltipPlayerControlsUnactivatedTeamTwo, bPlayerControlsUnactivatedTeamTwo, PlayerControlsUnactivatedTeamTwoTurnSaveHandler);
     DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsTeamTwoTurn);
 
-    Group.AddCheckbox(nameof(bForceControlledUnitsToRun),           strLabelForceControlledUnitsToRun,           strTooltipForceControlledUnitsToRun,           bForceControlledUnitsToRun,           ForceInactiveUnitsToRunSaveHandler);
+    Group.AddCheckbox(nameof(bForceControlledUnitsToRun), strLabelForceControlledUnitsToRun, strTooltipForceControlledUnitsToRun, bForceControlledUnitsToRun, ForceInactiveUnitsToRunSaveHandler);
 
     // Group: turn timer settings
     Group = Page.AddGroup('DirectControlTurnTimerSettings', strTurnTimerGroupHeader);
 
-    Setting = Group.AddCheckbox(nameof(bShowTurnTimer),            strLabelTurnTimerEnabled,         strTooltipTurnTimerEnabled,         bShowTurnTimer,            TurnTimerEnabledSaveHandler, DisableNextSettingWhenFalseHandler);
+    Setting = Group.AddCheckbox(nameof(bShowTurnTimer),  strLabelTurnTimerEnabled,         strTooltipTurnTimerEnabled,         bShowTurnTimer,            TurnTimerEnabledSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bTurnTimerShowsActiveTeam), strLabelTurnTimerShowsActiveTeam, strTooltipTurnTimerShowsActiveTeam, bTurnTimerShowsActiveTeam, TurnTimerShowsTeamSaveHandler);
     DisableNextSettingWhenFalseHandler(Setting, bShowTurnTimer);
 
