@@ -168,7 +168,6 @@ function ZoomCamera(float Amount) // override look at cam function to be able to
     // If FreeCameraRotation is in use, which has a conflicting MCO, then use its config values here
     if (class'DirectControlUtils'.static.IsModActive('FreeCameraRotation'))
     {
-        `DC_LOG("FreeCameraRotation is active");
 	    TargetZoom = FClamp(TargetZoom + Amount, class'X2Camera_FollowMouseCursor_FreeCameraRotation'.default.MIN_ZOOM_MULT, 1.0);
     }
     else
