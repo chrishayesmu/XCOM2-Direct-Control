@@ -132,13 +132,13 @@ private function EventListenerReturn OnPlayerTurnBegun(Object EventData, Object 
 
     `DC_LOG("Player turn changed to team " $ PlayerState.TeamFlag);
 
-    if (!class'DirectControlUtils'.static.IsLocalPlayer(PlayerState.TeamFlag))
+    if (ShouldShow(PlayerState))
     {
-        Hide();
+        Show();
     }
     else
     {
-        Show();
+        Hide();
     }
 
     SetActiveTeamText(PlayerState);
@@ -207,16 +207,17 @@ private function SetActiveTeamText(optional XComGameState_Player PlayerState)
     m_strActiveTeamColor = OverrideTuple.Data[1].s;
 }
 
-private function bool ShouldShow()
+private function bool ShouldShow(optional XComGameState_Player PlayerState)
 {
-    local XComGameState_Player PlayerState;
-
     if (!`DC_CFG(bShowTurnTimer))
     {
         return false;
     }
 
-    PlayerState = class'DirectControlUtils'.static.GetActivePlayer();
+    if (PlayerState == none)
+    {
+        PlayerState = class'DirectControlUtils'.static.GetActivePlayer();
+    }
 
     if (PlayerState == none || !class'DirectControlUtils'.static.IsLocalPlayer(PlayerState.TeamFlag))
     {
