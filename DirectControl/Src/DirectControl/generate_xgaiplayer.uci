@@ -104,6 +104,8 @@ simulated function OnUnitActionPhase_ActionsAvailable(XComGameState_Unit UnitSta
 
 simulated function OnUnitActionPhaseFinished_NextPlayer()
 {
+    super.OnUnitActionPhaseFinished_NextPlayer();
+
 	`DC_LOG("OnUnitActionPhaseFinished_NextPlayer: setting team to XCOM");
 	class'DirectControlUtils'.static.SetControllingPlayerTeam(eTeam_XCom);
 }
