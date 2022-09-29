@@ -199,7 +199,6 @@ private function ShowTurnOverlay()
     if (m_eTeam == eTeam_Alien)
     {
         bChosenMoving = UnitsToMoveIncludesChosen();
-        `DC_LOG("bChosenMoving = " $ bChosenMoving);
 
         if (bChosenMoving)
         {
