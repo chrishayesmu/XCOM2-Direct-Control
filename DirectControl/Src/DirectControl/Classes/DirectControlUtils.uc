@@ -127,7 +127,8 @@ static function bool IsPlayerControllingUnit(XComGameState_Unit UnitState)
         return false;
     }
 
-    if (UnitState.IsUnrevealedAI())
+    // For some godawful reason, IsUnrevealedAI returns true for MC'd XCOM soldiers
+    if (UnitState.IsUnrevealedAI() && !UnitState.IsMindControlled())
     {
         switch (UnitState.GetTeam())
         {
