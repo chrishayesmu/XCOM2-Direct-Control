@@ -191,39 +191,88 @@ private function HideTurnOverlay()
 
 private function ShowTurnOverlay()
 {
+    local bool bChosenMoving;
+    local UITurnOverlay TurnOverlay;
+
+    TurnOverlay = `PRES.m_kTurnOverlay;
+
     if (m_eTeam == eTeam_Alien)
     {
-        if (!`PRES.m_kTurnOverlay.IsShowingAlienTurn())
+        bChosenMoving = UnitsToMoveIncludesChosen();
+        `DC_LOG("bChosenMoving = " $ bChosenMoving);
+
+        if (bChosenMoving)
         {
-            `PRES.m_kTurnOverlay.ShowAlienTurn();
+            if (TurnOverlay.IsShowingAlienTurn())
+            {
+                TurnOverlay.HideAlienTurn();
+            }
+
+            if (!TurnOverlay.IsShowingChosenTurn())
+            {
+                TurnOverlay.ShowChosenTurn();
+            }
+        }
+        else
+        {
+            if (TurnOverlay.IsShowingChosenTurn())
+            {
+                TurnOverlay.HideChosenTurn();
+            }
+
+            if (!TurnOverlay.IsShowingAlienTurn())
+            {
+                TurnOverlay.ShowAlienTurn();
+            }
         }
     }
     else if (m_eTeam == eTeam_Resistance)
     {
-        if (!`PRES.m_kTurnOverlay.IsShowingXComTurn())
+        if (!TurnOverlay.IsShowingXComTurn())
         {
-            `PRES.m_kTurnOverlay.ShowXComTurn();
+            TurnOverlay.ShowXComTurn();
         }
     }
     else if (m_eTeam == eTeam_TheLost)
     {
-        if (!`PRES.m_kTurnOverlay.IsShowingTheLostTurn())
+        if (!TurnOverlay.IsShowingTheLostTurn())
         {
-            `PRES.m_kTurnOverlay.ShowTheLostTurn();
+            TurnOverlay.ShowTheLostTurn();
         }
     }
     else if (m_eTeam == eTeam_One)
     {
-        if (!`PRES.m_kTurnOverlay.IsShowingReflexAction())
+        if (!TurnOverlay.IsShowingReflexAction())
         {
-            `PRES.m_kTurnOverlay.ShowReflexAction();
+            TurnOverlay.ShowReflexAction();
         }
     }
     else if (m_eTeam == eTeam_Two)
     {
-        if (!`PRES.m_kTurnOverlay.IsShowingOtherTurn())
+        if (!TurnOverlay.IsShowingOtherTurn())
         {
-            `PRES.m_kTurnOverlay.ShowOtherTurn();
+            TurnOverlay.ShowOtherTurn();
         }
     }
+}
+
+private function bool UnitsToMoveIncludesChosen()
+{
+    local GameRulesCache_Unit CacheUnit;
+    local XComGameState_Unit UnitState;
+    local XComGameStateHistory History;
+
+    History = `XCOMHISTORY;
+
+    foreach UnitsToMove(CacheUnit)
+    {
+        UnitState = XComGameState_Unit(History.GetGameStateForObjectID(CacheUnit.UnitObjectRef.ObjectID));
+
+        if (UnitState.IsChosen())
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
