@@ -142,7 +142,9 @@ function bool CanScamper(XComGameState_Unit UnitStateObject)
         return true;
     }
 
-    if (bIsTeamPlayerControlled && !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitStateObject.ObjectID))
+    if (bIsTeamPlayerControlled &&
+        !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitStateObject.ObjectID) &&
+        UnitStateObject.ShadowUnit_CopiedUnit.ObjectID == 0 /* check if unit is created by Shadowbind */)
     {
         // Only prevent scamper if the team has had a turn to position their troops; otherwise they'll just be stuck out in
         // the open with no chance for counterplay
