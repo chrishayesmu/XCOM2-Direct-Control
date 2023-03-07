@@ -129,6 +129,7 @@ simulated function GatherUnitsToMove()
     // If the player isn't controlling this team, then we're done; let the AI handle it from here
     if (!class'DirectControlUtils'.static.IsLocalPlayer(m_eTeam))
     {
+        `DC_LOG("GatherUnitsToMove: team " $ m_eTeam $ " is not local player");
         return;
     }
 
@@ -147,6 +148,10 @@ simulated function GatherUnitsToMove()
 
 private function HideTurnOverlay()
 {
+    // The tactical HUD refuses to show itself if an enemy turn overlay is open, so schedule it
+    // to show slightly after we hide the overlay
+    SetTimer(2.1f, /* inBLoop */ false, 'Show', `PRES.m_kTacticalHUD);
+
     if (m_eTeam == eTeam_Alien)
     {
         if (`PRES.m_kTurnOverlay.IsShowingAlienTurn())
@@ -193,6 +198,8 @@ private function ShowTurnOverlay()
 {
     local bool bChosenMoving;
     local UITurnOverlay TurnOverlay;
+
+    `PRES.m_kTacticalHUD.Hide();
 
     TurnOverlay = `PRES.m_kTurnOverlay;
 
