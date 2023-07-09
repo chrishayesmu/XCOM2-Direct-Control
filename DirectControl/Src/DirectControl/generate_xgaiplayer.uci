@@ -1,11 +1,208 @@
+var array<StateObjectReference> CurrentControlledUnits;
+var array<GameRulesCache_Unit> UnitsToManuallyMove; // A list of units being controlled by a human this turn
+
+var bool m_bPendingAIGroupLoad;
+
+// Direct Control copy of XGAIPlayer.GatherUnitsToMove; moved into a separate function to make our overridden
+// version of GatherUnitsToMove significantly easier to read.
+simulated function DC_GatherUnitsToMove()
+{
+	local XComGameState_Unit UnitState;
+	local XComGameStateHistory History;
+	local GameRulesCache_Unit DummyCachedActionData;
+	local array<GameRulesCache_Unit> arrGreenPatrollers;
+	local array<GameRulesCache_Unit> arrOthers;
+	local array<GameRulesCache_Unit> arrToSkip;
+	local array<GameRulesCache_Unit> ScamperSetup;
+	local array<GameRulesCache_Unit> Scampering;
+	local array<int> OrderPriorityList;
+	local XComTacticalCheatManager kCheatMgr;
+	// Start Issue #510 - variables no longer used
+	// local XGAIBehavior kBehavior;
+	// local XComGameState_AIPlayerData kAIPlayerData;
+	// End Issue #510
+	local bool bDead, bGroupUnitAdded;
+	local X2AIBTBehaviorTree BTMgr;
+	local XComGameState_AIGroup AIGroupState;
+	local StateObjectReference UnitStateObjRef;
+	local X2CharacterTemplate CharTemplate;
+
+	// kAIPlayerData = XComGameState_AIPlayerData(`XCOMHISTORY.GetGameStateForObjectID(GetAIDataID())); // Issue #510 - no longer used
+
+	History = `XCOMHISTORY;
+
+    // DC: When loading a mid-tactical save during an enemy team's turn, the current AI group is not persisted.
+    // We use a flag (set during Init) and some custom logic to identify the group dynamically.
+    if (m_bPendingAIGroupLoad)
+    {
+        `DC_LOG("m_bPendingAIGroupLoad is set. Attempting to find current AI group state. m_kActiveUnit = " $ m_kActiveUnit);
+
+        if (m_kActiveUnit != none)
+        {
+            UnitState = XComGameState_Unit(History.GetGameStateForObjectID(m_kActiveUnit.ObjectID));
+            AIGroupState = UnitState.GetGroupMembership();
+
+            CurrentAIGroupRef.ObjectID = AIGroupState.ObjectID;
+
+            // Don't clear the flag until a successful load occurs; it will fail a few times until the active unit is populated
+            m_bPendingAIGroupLoad = false;
+        }
+    }
+
+	kCheatMgr = `CHEATMGR;
+	BTMgr = `BEHAVIORTREEMGR;
+
+    // DC: remove early return if bAllowSelectAll is true
+	if (m_bSkipAI || CurrentAIGroupRef.ObjectID <= 0)
+    {
+		return;
+    }
+
+	AIGroupState = XComGameState_AIGroup(History.GetGameStateForObjectID(CurrentAIGroupRef.ObjectID));
+	if (self.IsA('XGAIPlayer_TheLost') && HasGroupAlreadyMovedThisTurn(CurrentAIGroupRef.ObjectID)
+		&& (AIGroupState.EncounterID != class'XGAIPlayer_TheLost'.const.MAIN_LOST_GROUP_ID)) // Main group excluded from this check.
+	{
+		// For TheLost groups, we only need to add one unit to process per group.
+		// The one unit per Lost group will kick off a mass move and mass attack.
+		bGroupUnitAdded = true;
+	}
+	`assert(AIGroupState != None);
+
+	//Loop through every unit, if it is ours, add it to the list
+	foreach AIGroupState.m_arrMembers(UnitStateObjRef)
+	{
+		UnitState = XComGameState_Unit(History.GetGameStateForObjectID(UnitStateObjRef.ObjectID));
+
+		// Initialize dummy cached action data.  This isn't actually updated until just before the unit begins its turn.
+		DummyCachedActionData.UnitObjectRef.ObjectID = UnitState.ObjectID;
+		bDead = UnitState.IsDead();
+		if (kCheatMgr != None)
+		{
+			kCheatMgr.AIStringsAddUnit(UnitState.ObjectID, bDead);
+		}
+
+		// kBehavior = (XGUnit(UnitState.GetVisualizer())).m_kBehavior; // Issue #510 - no longer used
+
+		// Check if this unit has already moved this turn.  (Compare init history index to last turn start)
+		// Also skip units that have currently no action points available.   They shouldn't be added to any lists.
+		//
+		// Issue #510 - Removed the DecisionStartHistoryIndex check as it prevents pod leaders from using
+		// any reflex actions they may have been granted.
+		if(bDead || UnitState.bRemovedFromPlay || UnitState.NumAllActionPoints() == 0) // || kBehavior == None || kBehavior.DecisionStartHistoryIndex > kAIPlayerData.m_iLastEndTurnHistoryIndex)
+		{
+			continue;
+		}
+
+		if (self.IsA('XGAIPlayer_TheLost') && bGroupUnitAdded )
+		{
+			arrToSkip.AddItem(DummyCachedActionData);
+			kCheatMgr.AIStringsUpdateString(UnitState.ObjectID, "Additional Lost units in AI Group- Skipping.");
+			continue;
+		}
+
+
+		// Add units to scamper setup list.
+		if( m_arrWaitForScamper.Find(UnitState.ObjectID) != INDEX_NONE )
+		{
+			ScamperSetup.AddItem(DummyCachedActionData);
+			kCheatMgr.AIStringsUpdateString(UnitState.ObjectID, "ScamperSetup");
+			bGroupUnitAdded = true;
+		}
+		else if( BTMgr.IsQueued(UnitState.ObjectID) )
+		{
+			Scampering.AddItem(DummyCachedActionData);
+			kCheatMgr.AIStringsUpdateString(UnitState.ObjectID, "Scampering");
+			bGroupUnitAdded = true;
+		}
+		else if( UnitIsFallingBack(UnitState) )
+		{
+			arrGreenPatrollers.InsertItem(0,DummyCachedActionData); // Fallback units get priority to move first.
+			kCheatMgr.AIStringsUpdateString(UnitState.ObjectID, "Falling Back");
+			bGroupUnitAdded = true;
+		}
+		else if (ShouldUnitPatrol(UnitState)) // && m_kNav.IsPatrol(UnitState.ObjectID))
+		{
+			arrGreenPatrollers.AddItem(DummyCachedActionData);
+			kCheatMgr.AIStringsUpdateString(UnitState.ObjectID, "Green Alert Patrol");
+			bGroupUnitAdded = true;
+		}
+		else if (UnitState.GetCurrentStat(eStat_AlertLevel)>0 || IsMindControlled(UnitState))
+		{
+			CharTemplate = UnitState.GetMyTemplate();
+			AddToOrderedCharacterList(arrOthers, DummyCachedActionData, OrderPriorityList, CharTemplate.AIOrderPriority);
+			bGroupUnitAdded = true;
+		}
+		else
+		{
+			arrToSkip.AddItem(DummyCachedActionData);
+			kCheatMgr.AIStringsUpdateString(UnitState.ObjectID, "Green Alert non-patrol- Skipping.");
+		}
+	}
+
+	if( IsScampering() )
+	{
+		if( WaitingForScamperSetup() )
+		{
+			if( m_ePhase != eAAP_ScamperSetUp )
+			{
+				m_ePhase = eAAP_ScamperSetUp;
+				`LogAI(" AI Player : Entering phase ScamperSetup");
+			}
+			UnitsToMove = ScamperSetup;
+		}
+		else
+		{
+			if( m_ePhase != eAAP_Scampering )
+			{
+				m_ePhase = eAAP_Scampering;
+				`LogAI(" AI Player : Entering phase Scampering");
+			}
+			UnitsToMove = Scampering;
+		}
+	}
+	else
+	{
+		if( arrGreenPatrollers.Length > 0 )
+		{
+			if(m_ePhase != eAAP_GreenPatrolMovement )
+			{
+				m_ePhase = eAAP_GreenPatrolMovement;
+				`LogAI(" AI Player : Entering phase GreenPatrolMovement");
+			}
+			UnitsToMove = arrGreenPatrollers;
+		}
+		else
+		{
+			if( m_ePhase != eAAP_SequentialMovement )
+			{
+				m_ePhase = eAAP_SequentialMovement;
+				`LogAI(" AI Player : Entering phase Sequential Movement");
+			}
+			// TODO: Sort units to move here.
+			UnitsToMove = arrOthers;
+		}
+	}
+	`LogAI(self$"::GatherUnitsToMove found "@UnitsToMove.Length@" units to move.");
+	if (arrToSkip.Length > 0)
+	{
+		`LogAI(self$"::GatherUnitsToMove found "@arrToSkip.Length@" units to skip.");
+	}
+}
+
 function Init(bool bLoading = false)
 {
     super.Init(bLoading);
 
-    // In case we're loading a save made during an alien turn, we need to set the controlling team
+    // In case we're loading a save made during an enemy turn..
     if (class'DirectControlUtils'.static.GetActivePlayer().TeamFlag == m_eTeam && class'DirectControlUtils'.static.IsLocalPlayer(m_eTeam))
     {
+        // Make sure the player is in control
         class'DirectControlUtils'.static.SetControllingPlayerTeam(m_eTeam);
+
+        // We want to populate our ControlledUnits array, as in OnUnitActionPhase_NextGroup, to properly support scampering behavior when needed.
+        // However, the base game never anticipated loading the game during an enemy turn, as you can't normally save during them, so our current
+        // AI group ID isn't set. Instead, we set a flag which will be read later, at a time when we can identify the active AI group.
+        m_bPendingAIGroupLoad = true;
     }
 }
 
@@ -102,6 +299,32 @@ simulated function OnUnitActionPhase_ActionsAvailable(XComGameState_Unit UnitSta
 	TryBeginNextUnitTurn();
 }
 
+simulated function OnUnitActionPhase_NextGroup(StateObjectReference InAIGroupRef)
+{
+	local StateObjectReference UnitStateObjRef;
+	local XComGameState_AIGroup AIGroupState;
+    local XComGameState_Unit UnitState;
+	local XComGameStateHistory History;
+
+    History = `XCOMHISTORY;
+	AIGroupState = XComGameState_AIGroup(History.GetGameStateForObjectID(InAIGroupRef.ObjectID));
+
+	foreach AIGroupState.m_arrMembers(UnitStateObjRef)
+    {
+        if (CurrentControlledUnits.Find('ObjectID', UnitStateObjRef.ObjectID) == INDEX_NONE)
+        {
+            UnitState = XComGameState_Unit(History.GetGameStateForObjectID(UnitStateObjRef.ObjectID));
+
+            if (class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitState))
+            {
+                CurrentControlledUnits.AddItem(UnitStateObjRef);
+            }
+        }
+    }
+
+    super.OnUnitActionPhase_NextGroup(InAIGroupRef);
+}
+
 simulated function OnUnitActionPhaseFinished_NextPlayer()
 {
     super.OnUnitActionPhaseFinished_NextPlayer();
@@ -112,19 +335,13 @@ simulated function OnUnitActionPhaseFinished_NextPlayer()
 
 simulated function GatherUnitsToMove()
 {
-    local bool bCachedAllowSelectAll;
     local int Index;
 	local XComGameState_Unit UnitState;
 	local XComGameStateHistory History;
 
 	History = `XCOMHISTORY;
-    bCachedAllowSelectAll = `CHEATMGR.bAllowSelectAll;
 
-    // We want to use the superclass method to decide how to move unactivated pods, but it will just return immediately
-    // if bAllowSelectAll is on, so quickly toggle it off first
-    `CHEATMGR.bAllowSelectAll = false;
-    super.GatherUnitsToMove();
-    `CHEATMGR.bAllowSelectAll = bCachedAllowSelectAll;
+    DC_GatherUnitsToMove();
 
     // If the player isn't controlling this team, then we're done; let the AI handle it from here
     if (!class'DirectControlUtils'.static.IsLocalPlayer(m_eTeam))
@@ -133,17 +350,129 @@ simulated function GatherUnitsToMove()
         return;
     }
 
+    `DC_LOG("GatherUnitsToMove: found " $ UnitsToMove.Length $ " potential units");
+    UnitsToManuallyMove.Length = 0;
+
     for (Index = 0; Index < UnitsToMove.Length; Index++)
     {
         UnitState = XComGameState_Unit(History.GetGameStateForObjectID(UnitsToMove[Index].UnitObjectRef.ObjectID));
 
+        `DC_LOG("GatherUnitsToMove: unit " $ UnitState.GetFullName() $ ". ObjectID from UnitsToMove: " $ UnitsToMove[Index].UnitObjectRef.ObjectID $ "; from unit state: " $ UnitState.GetReference().ObjectID);
+
         // Remove any active AI so that the player can move them
         if (class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitState))
         {
+            `DC_LOG("GatherUnitsToMove: Unit " $ UnitState.GetFullName() $ " is player controlled");
+            UnitsToManuallyMove.AddItem(UnitsToMove[Index]);
             UnitsToMove.Remove(Index, 1);
             Index--;
+
+            if (CurrentControlledUnits.Find('ObjectID', UnitState.GetReference().ObjectID) == INDEX_NONE)
+            {
+                `DC_LOG("GatherUnitsToMove: Adding unit to CurrentControlledUnits");
+                CurrentControlledUnits.AddItem(UnitState.GetReference());
+            }
+        }
+        else
+        {
+            `DC_LOG("GatherUnitsToMove: Unit " $ UnitState.GetFullName() $ " is not player controlled");
         }
     }
+}
+
+/// <summary>
+/// If we are notified by the rules engine to move a unit and the reflex action state of that unit is set to
+/// AI scamper - it means we have been given a free move by the reflex mechanics and need to decide a move right away
+/// </summary>
+simulated function QueueScamperBehavior(XComGameState_Unit ScamperUnitState, XComGameState_Unit AlertSourceState, bool bSurprisedScamper, bool bFirstScamper)
+{
+	local XGUnit UnitVisualizer;
+	local int iIndex, NumScamperActionPoints, ID;
+	local X2CharacterTemplate Template;
+	local X2AIBTBehaviorTree BTMgr;
+	local XGPlayer EnemyPlayer;
+	local XComGameState_Player EnemyPlayerState;
+	local XComGameState_AIGroup Group;
+	local array<int> MemberIDs;
+    local bool bIsFakeScamper;
+
+	BTMgr = `BEHAVIORTREEMGR;
+
+	`assert(ScamperUnitState != none);
+	if (`CHEATMGR != None && `CHEATMGR.bAbortScampers)
+	{
+		return;
+	}
+
+	if (ScamperUnitState.CanScamper())
+	{
+		// Early out if this team is TheLost and we already have a scampering unit.
+		// Only one unit per group needs to scamper for TheLost, since the one unit kicks off a mass-group move.
+		if (ScamperUnitState.GetTeam() == eTeam_TheLost)
+		{
+			Group = ScamperUnitState.GetGroupMembership();
+			if (Group.GetLivingMembers(MemberIDs))
+			{
+				foreach MemberIDs(ID)
+				{
+					if (BTMgr.IsScampering(ID, true))
+					{
+						return;
+					}
+				}
+			}
+		}
+
+		UnitVisualizer = XGUnit(ScamperUnitState.GetVisualizer());
+		if (UnitVisualizer != none)
+		{
+			// Force patrol group to update alertness values.
+			if (UnitVisualizer.m_kBehavior.m_kPatrolGroup != None)
+			{
+				UnitVisualizer.m_kBehavior.m_kPatrolGroup.UpdateLastAlertLevel();
+			}
+		}
+
+		Template = ScamperUnitState.GetMyTemplate();
+
+		EnemyPlayer = `BATTLE.GetEnemyPlayer(self);
+		EnemyPlayerState = XComGameState_Player(`XCOMHISTORY.GetGameStateForObjectID(EnemyPlayer.ObjectID));
+
+		// Update - only wait for squad concealment if this unit was alerted to a unit on the concealed team.
+		if( EnemyPlayerState.bSquadIsConcealed && AlertSourceState.ControllingPlayer.ObjectID == EnemyPlayerState.ObjectID
+			&& (ScamperUnitState.GetTeam() != eTeam_TheLost)  // Update - Scampering Lost do not wait for squad concealment to break.
+			&& !ScamperUnitState.IsChosen()) // Also Chosen does not wait for squad concealment when activated.
+		{
+			BTMgr.bWaitingOnSquadConcealment = true;
+		}
+
+		NumScamperActionPoints = ScamperUnitState.GetNumScamperActionPoints();
+        bIsFakeScamper = !class'XComGameState_AIGroup_DirectControlMCO'.static.DC_CanScamper(ScamperUnitState, CurrentControlledUnits);
+
+        `DC_LOG("QueueScamperBehavior: Scamper unit state object ID is " $ ScamperUnitState.GetReference().ObjectID);
+        `DC_LOG("QueueScamperBehavior: Unit " $ ScamperUnitState.GetFullName() $ " is fake scamper: " $ bIsFakeScamper);
+
+        // DC: avoid running behavior tree for units who aren't truly scampering
+        if (!bIsFakeScamper)
+        {
+            `DC_LOG("QueueScamperBehavior: Queuing up scamper behavior tree for unit " $ ScamperUnitState.GetFullName());
+    		BTMgr.QueueBehaviorTreeRun(ScamperUnitState, Template.strScamperBT, NumScamperActionPoints, `XCOMHISTORY.GetCurrentHistoryIndex()+1, true, bFirstScamper, bSurprisedScamper);
+
+		    iIndex = UnitsToMove.Find('UnitObjectRef', ScamperUnitState.GetReference());
+
+    		// Remove this unit from our UnitsToMove array, if it is in there.
+            if( iIndex != -1 )
+            {
+                `DC_LOG("QueueScamperBehavior: Removing unit " $ ScamperUnitState.GetFullName() $ " from UnitsToMove; NumScamperActionPoints = " $ NumScamperActionPoints);
+                `LogAI("Removing unit"@UnitsToMove[iIndex].UnitObjectRef.ObjectID@"from UnitsToMove list - QueueBehaviorTreeRun.");
+                UnitsToMove.Remove(iIndex, 1);
+            }
+        }
+	}
+	else
+	{
+		`LogAI("No scamper action chosen - Unit Character Template marked as Does Not Scamper.  UnitID#"$ScamperUnitState.ObjectID);
+	}
 }
 
 private function HideTurnOverlay()

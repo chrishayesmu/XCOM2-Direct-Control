@@ -1,5 +1,7 @@
 class XComGameState_AIGroup_DirectControlMCO extends XComGameState_AIGroup;
 
+const DEBUG_LOGGING = false;
+
 function ProcessReflexMoveActivate(optional name InSpecialRevealType)
 {
     local XComGameStateHistory History;
@@ -11,10 +13,13 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
     local XComGameState NewGameState;
     local array<StateObjectReference> Scamperers;
     local float SurprisedChance;
-    local bool bUnitIsSurprised;
+    local bool bUnitIsSurprised, bIsFakeScamper;
     local X2TacticalGameRuleset Rules;
+    local array<StateObjectReference> ControlledUnits;
 
     History = `XCOMHISTORY;
+
+    `DC_LOG("ProcessReflexMoveActivate: bProcessedScamper = " $ bProcessedScamper, DEBUG_LOGGING);
 
     if( !bProcessedScamper ) // Only allow scamper once.
     {
@@ -30,14 +35,6 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
 
         NumScamperers = Scamperers.Length;
 
-        // DC: if there's no one eligible to scamper, we still need to mark the group as having scampered, or other game logic can break
-        if (NumScamperers == 0)
-        {
-            `DC_LOG("No scamperers found in this group: submitting fake scamper state. Group state is " $ self);
-            SubmitFakeScamperState();
-            return;
-        }
-
         //////////////////////////////////////////////////////////////
         // Kick off the BT scamper actions
 
@@ -46,6 +43,13 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
         `assert(AIPlayer != none);
         TargetStateObject = XComGameState_Unit(History.GetGameStateForObjectID(RevealInstigatorUnitObjectID));
 
+        // DC: find the list of units which are known to be controlled by the player
+        if (XGAIPlayer_DirectControlMCO(AIPlayer) != none)
+        {
+            `DC_LOG("ProcessReflexMoveActivate: Getting list of controlled units from XGAIPlayer_DirectControlMCO", DEBUG_LOGGING);
+            ControlledUnits = XGAIPlayer_DirectControlMCO(AIPlayer).CurrentControlledUnits;
+        }
+
         // Give the units their scamper action points
         NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Add Scamper Action Points");
         foreach Scamperers(Ref)
@@ -53,12 +57,26 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
             NewUnitState = XComGameState_Unit(NewGameState.ModifyStateObject(class'XComGameState_Unit', Ref.ObjectID));
             if( NewUnitState.IsAbleToAct() )
             {
-                NewUnitState.ActionPoints.Length = 0;
-                NumActionPoints = NewUnitState.GetNumScamperActionPoints();
+                bIsFakeScamper = !DC_CanScamper(NewUnitState, ControlledUnits);
+                NumActionPoints = 0;
+
+                if (!bIsFakeScamper)
+                {
+                    `DC_LOG("ProcessReflexMoveActivate: Scamper for unit " $ NewUnitState.GetFullName() $ " is not fake; removing action points", DEBUG_LOGGING);
+                    NewUnitState.ActionPoints.Length = 0;
+                    NumActionPoints = NewUnitState.GetNumScamperActionPoints();
+                }
+                else
+                {
+                    `DC_LOG("ProcessReflexMoveActivate: Not removing action points for unit " $ NewUnitState.GetFullName(), DEBUG_LOGGING);
+                }
+
                 for (i = 0; i < NumActionPoints; ++i)
                 {
                     NewUnitState.ActionPoints.AddItem(class'X2CharacterTemplateManager'.default.StandardActionPoint); //Give the AI one free action point to use.
                 }
+
+                `DC_LOG("ProcessReflexMoveActivate: Unit " $ NewUnitState.GetFullName() $ " has " $ NumActionPoints $ " action points to use for scamper", DEBUG_LOGGING);
 
                 if (NewUnitState.GetMyTemplate().OnRevealEventFn != none)
                 {
@@ -129,34 +147,9 @@ function ProcessReflexMoveActivate(optional name InSpecialRevealType)
 
 function bool CanScamper(XComGameState_Unit UnitStateObject)
 {
-    local bool bIsTeamPlayerControlled;
-
-    // If the player is responsible for controlling inactive units, and these aren't reinforcements, don't scamper.
-    // Reinforcements are allowed to scamper because they otherwise have no action points and won't be controllable
-    // on the turn that they spawn.
-    bIsTeamPlayerControlled = class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitStateObject);
-
-    if (bIsTeamPlayerControlled && UnitStateObject.IsChosen() && !class'DirectControlUtils'.static.IsUnitSpawnedAsReinforcements(UnitStateObject.ObjectID))
-    {
-        // Chosen have to be allowed to scamper or they break
-        return true;
-    }
-
-    if (bIsTeamPlayerControlled &&
-        !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitStateObject.ObjectID) &&
-        UnitStateObject.ShadowUnit_CopiedUnit.ObjectID == 0 /* check if unit is created by Shadowbind */)
-    {
-        // Only prevent scamper if the team has had a turn to position their troops; otherwise they'll just be stuck out in
-        // the open with no chance for counterplay
-        if (class'DirectControlUtils'.static.HasTeamHadATurn(UnitStateObject.GetTeam()))
-        {
-            return false;
-        }
-    }
-
     // DC: same as vanilla logic but allow player-controlled units to scamper
     return UnitStateObject.IsAlive() &&
-         (!UnitStateObject.IsIncapacitated()) &&
+          !UnitStateObject.IsIncapacitated() &&
            UnitStateObject.bTriggerRevealAI &&
           !UnitStateObject.IsPanicked() &&
           !UnitStateObject.IsUnitAffectedByEffectName(class'X2AbilityTemplateManager'.default.PanickedName) &&
@@ -164,17 +157,48 @@ function bool CanScamper(XComGameState_Unit UnitStateObject)
          (`CHEATMGR == None || !`CHEATMGR.bAbortScampers);
 }
 
-private function SubmitFakeScamperState()
+// Extra logic for Direct Control: we may not want entire pods to scamper (if the player has positioned the units themselves),
+// or sometimes we only want individual units in a pod to scamper (e.g. summoning a new unit into an already-active pod).
+static function bool DC_CanScamper(XComGameState_Unit UnitStateObject, array<StateObjectReference> ControlledUnits)
 {
-    local XComGameState NewGameState;
-    local XComGameState_AIGroup NewGroupState;
+    local bool bIsTeamPlayerControlled;
 
-    NewGameState = class'XComGameStateContext_ChangeContainer'.static.CreateChangeState("Direct Control: Fake Scamper State");
+    `DC_LOG("DC_CanScamper: called for unit " $ UnitStateObject.GetFullName() $ " (obj ID " $ UnitStateObject.GetReference().ObjectID $ ")", DEBUG_LOGGING);
+    `DC_LOG("DC_CanScamper: group membership obj ID = " $ UnitStateObject.GetGroupMembership().GetReference().ObjectID $ ". ControlledUnits.Length = " $ ControlledUnits.Length, DEBUG_LOGGING);
 
-    NewGroupState = XComGameState_AIGroup(NewGameState.ModifyStateObject(class'XComGameState_AIGroup', ObjectID));
-    NewGroupState.bProcessedScamper = true;
-    NewGroupState.bPendingScamper = false;
-    NewGroupState.bSummoningSicknessCleared = true;
+    // If the player is responsible for controlling inactive units, and these aren't reinforcements, don't scamper.
+    // Reinforcements are allowed to scamper because they otherwise have no action points and won't be controllable
+    // on the turn that they spawn.
+    bIsTeamPlayerControlled = class'DirectControlUtils'.static.IsPlayerControllingUnit(UnitStateObject);
 
-    `TACTICALRULES.SubmitGameState(NewGameState);
+    // TODO: this can probably be cleaned up or clarified (why would a Chosen ever be spawned as reinforcements?)
+    if (bIsTeamPlayerControlled && UnitStateObject.IsChosen() && !class'DirectControlUtils'.static.IsUnitSpawnedAsReinforcements(UnitStateObject.ObjectID))
+    {
+        // Chosen have to be allowed to scamper or they break
+        return true;
+    }
+
+    if (ControlledUnits.Find('ObjectID', UnitStateObject.GetReference().ObjectID) != INDEX_NONE)
+    {
+        `DC_LOG("DC_CanScamper: Unit is listed as currently controlled by player, cannot scamper", DEBUG_LOGGING);
+        return false;
+    }
+
+    if (bIsTeamPlayerControlled &&
+        !class'DirectControlUtils'.static.IsUnitSpawningAsReinforcements(UnitStateObject.ObjectID) &&
+        UnitStateObject.ShadowUnit_CopiedUnit.ObjectID == 0 /* check if unit is created by Shadowbind */)
+    {
+        `DC_LOG("DC_CanScamper: Unit " $ UnitStateObject.GetFullName() $ " group's summoning sickness cleared? " $ UnitStateObject.GetGroupMembership().bSummoningSicknessCleared, DEBUG_LOGGING);
+
+        // Only prevent scamper if the team has had a turn to position their troops; otherwise they'll just be stuck out in
+        // the open with no chance for counterplay
+        if (UnitStateObject.GetGroupMembership().bSummoningSicknessCleared && class'DirectControlUtils'.static.HasTeamHadATurn(UnitStateObject.GetTeam()))
+        {
+            `DC_LOG("DC_CanScamper: cannot scamper!", DEBUG_LOGGING);
+            return false;
+        }
+    }
+
+    `DC_LOG("DC_CanScamper: can scamper", DEBUG_LOGGING);
+    return true;
 }
