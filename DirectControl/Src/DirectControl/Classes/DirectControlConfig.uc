@@ -1,6 +1,10 @@
 class DirectControlConfig extends UIScreenListener
     config(DirectControlConfig);
 
+// LOAD_CFG(Cfg, Ver) will compare the version number stored in the non-default values to Ver. If the non-default config has been saved since
+// version Ver was set up, the non-default value is used; otherwise, the default value is used.
+`define LOAD_CFG(CfgName, MinVersion) (class'DirectControlConfig'.default.ConfigVersion >= `MinVersion ? class'DirectControlConfig'.default.`CfgName : class'DirectControlConfigDefaults'.default.`CfgName)
+
 var config int ConfigVersion;
 
 /////////////////////////////////////////////////
@@ -9,6 +13,8 @@ var config int ConfigVersion;
 
 var config bool bPlayerControlsAlienTurn;
 var config bool bPlayerControlsUnactivatedAliens;
+
+var config bool bPlayerControlsChosenTurn;
 
 var config bool bPlayerControlsResistanceTurn;
 var config bool bPlayerControlsUnactivatedResistance;
@@ -44,6 +50,8 @@ var const localized string strPageHeader;
 var const localized string strGeneralGroupHeader;
 var const localized string strLabelPlayerControlsAlienTurn;
 var const localized string strTooltipPlayerControlsAlienTurn;
+var const localized string strLabelPlayerControlsChosenTurn;
+var const localized string strTooltipPlayerControlsChosenTurn;
 var const localized string strLabelPlayerControlsUnactivatedAliens;
 var const localized string strTooltipPlayerControlsUnactivatedAliens;
 var const localized string strLabelPlayerControlsResistanceTurn;
@@ -92,6 +100,12 @@ event OnInit(UIScreen Screen)
 	}
 }
 
+static function bool PlayerControlsChosen()
+{
+    // Chosen control setting was first added in our config version 5
+    return `LOAD_CFG(bPlayerControlsChosenTurn, 5);
+}
+
 function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
 {
     local MCM_API_Setting Setting;
@@ -106,9 +120,10 @@ function ClientModCallback(MCM_API_Instance ConfigAPI, int GameMode)
     // Group: general settings
     Group = Page.AddGroup('DirectControlGeneralSettings', strGeneralGroupHeader);
 
-    Setting = Group.AddCheckbox(nameof(bPlayerControlsAlienTurn), strLabelPlayerControlsAlienTurn,         strTooltipPlayerControlsAlienTurn,         bPlayerControlsAlienTurn,         PlayerControlsAlienTurnSaveHandler, DisableNextSettingWhenFalseHandler);
+    Setting = Group.AddCheckbox(nameof(bPlayerControlsAlienTurn), strLabelPlayerControlsAlienTurn,         strTooltipPlayerControlsAlienTurn,         bPlayerControlsAlienTurn,         PlayerControlsAlienTurnSaveHandler, DisableNextTwoSettingsWhenFalseHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedAliens),   strLabelPlayerControlsUnactivatedAliens, strTooltipPlayerControlsUnactivatedAliens, bPlayerControlsUnactivatedAliens, PlayerControlsUnactivatedAliensTurnSaveHandler);
-    DisableNextSettingWhenFalseHandler(Setting, bPlayerControlsAlienTurn);
+    Group.AddCheckbox(nameof(bPlayerControlsChosenTurn), strLabelPlayerControlsChosenTurn, strTooltipPlayerControlsChosenTurn, bPlayerControlsChosenTurn, PlayerControlsChosenTurnSaveHandler);
+    DisableNextTwoSettingsWhenFalseHandler(Setting, bPlayerControlsAlienTurn);
 
     Setting = Group.AddCheckbox(nameof(bPlayerControlsResistanceTurn), strLabelPlayerControlsResistanceTurn,        strTooltipPlayerControlsResistanceTurn,        bPlayerControlsResistanceTurn,        PlayerControlsResistanceTurnSaveHandler, DisableNextSettingWhenFalseHandler);
     Group.AddCheckbox(nameof(bPlayerControlsUnactivatedResistance),    strLabelPlayerControlsUnactivatedResistance, strTooltipPlayerControlsUnactivatedResistance, bPlayerControlsUnactivatedResistance, PlayerControlsUnactivatedResistanceTurnSaveHandler);
@@ -208,24 +223,28 @@ private function DisableNextTwoSettingsWhenFalseHandler(MCM_API_Setting Setting,
 
 private function LoadSavedSettings()
 {
-    bPlayerControlsAlienTurn = `DC_CFG(bPlayerControlsAlienTurn);
-    bPlayerControlsUnactivatedAliens = `DC_CFG(bPlayerControlsUnactivatedAliens);
-    bPlayerControlsResistanceTurn = `DC_CFG(bPlayerControlsResistanceTurn);
-    bPlayerControlsUnactivatedResistance = `DC_CFG(bPlayerControlsUnactivatedResistance);
-    bPlayerControlsLostTurn = `DC_CFG(bPlayerControlsLostTurn);
-    bPlayerControlsUnactivatedLost = `DC_CFG(bPlayerControlsUnactivatedLost);
-    bPlayerControlsTeamOneTurn = `DC_CFG(bPlayerControlsTeamOneTurn);
-    bPlayerControlsUnactivatedTeamOne = `DC_CFG(bPlayerControlsUnactivatedTeamOne);
-    bPlayerControlsTeamTwoTurn = `DC_CFG(bPlayerControlsTeamTwoTurn);
-    bPlayerControlsUnactivatedTeamTwo = `DC_CFG(bPlayerControlsUnactivatedTeamTwo);
-    bForceControlledUnitsToRun = `DC_CFG(bForceControlledUnitsToRun);
+    // Settings dating back to config version 1
+    bPlayerControlsAlienTurn = `LOAD_CFG(bPlayerControlsAlienTurn, 1);
+    bPlayerControlsUnactivatedAliens = `LOAD_CFG(bPlayerControlsUnactivatedAliens, 1);
+    bPlayerControlsResistanceTurn = `LOAD_CFG(bPlayerControlsResistanceTurn, 1);
+    bPlayerControlsUnactivatedResistance = `LOAD_CFG(bPlayerControlsUnactivatedResistance, 1);
+    bPlayerControlsLostTurn = `LOAD_CFG(bPlayerControlsLostTurn, 1);
+    bPlayerControlsUnactivatedLost = `LOAD_CFG(bPlayerControlsUnactivatedLost, 1);
+    bPlayerControlsTeamOneTurn = `LOAD_CFG(bPlayerControlsTeamOneTurn, 1);
+    bPlayerControlsUnactivatedTeamOne = `LOAD_CFG(bPlayerControlsUnactivatedTeamOne, 1);
+    bPlayerControlsTeamTwoTurn = `LOAD_CFG(bPlayerControlsTeamTwoTurn, 1);
+    bPlayerControlsUnactivatedTeamTwo = `LOAD_CFG(bPlayerControlsUnactivatedTeamTwo, 1);
+    bForceControlledUnitsToRun = `LOAD_CFG(bForceControlledUnitsToRun, 1);
 
-    bShowTurnTimer = `DC_CFG(bShowTurnTimer);
-    bTurnTimerShowsActiveTeam = `DC_CFG(bTurnTimerShowsActiveTeam);
+    bShowTurnTimer = `LOAD_CFG(bShowTurnTimer, 1);
+    bTurnTimerShowsActiveTeam = `LOAD_CFG(bTurnTimerShowsActiveTeam, 1);
 
-    bAdventReinforcements_EnableSubmod = `DC_CFG(bAdventReinforcements_EnableSubmod);
-    fAdventReinforcements_ReinforcementPlacementRange = `DC_CFG(fAdventReinforcements_ReinforcementPlacementRange);
-    bAdventReinforcements_RequireSquadLosToTargetTile = `DC_CFG(bAdventReinforcements_RequireSquadLosToTargetTile);
+    bAdventReinforcements_EnableSubmod = `LOAD_CFG(bAdventReinforcements_EnableSubmod, 1);
+    fAdventReinforcements_ReinforcementPlacementRange = `LOAD_CFG(fAdventReinforcements_ReinforcementPlacementRange, 1);
+    bAdventReinforcements_RequireSquadLosToTargetTile = `LOAD_CFG(bAdventReinforcements_RequireSquadLosToTargetTile, 1);
+
+    // Settings dating back to config version 5
+    bPlayerControlsChosenTurn = PlayerControlsChosen();
 
     if (class'DirectControlConfigDefaults'.default.ConfigVersion > default.ConfigVersion)
     {
@@ -244,6 +263,7 @@ private function SaveButtonClicked(MCM_API_SettingsPage Page)
 
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsAlienTurnSaveHandler, bPlayerControlsAlienTurn);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedAliensTurnSaveHandler, bPlayerControlsUnactivatedAliens);
+`MCM_API_BasicCheckboxSaveHandler(PlayerControlsChosenTurnSaveHandler, bPlayerControlsChosenTurn);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsResistanceTurnSaveHandler, bPlayerControlsResistanceTurn);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsUnactivatedResistanceTurnSaveHandler, bPlayerControlsUnactivatedResistance);
 `MCM_API_BasicCheckboxSaveHandler(PlayerControlsLostTurnSaveHandler, bPlayerControlsLostTurn);

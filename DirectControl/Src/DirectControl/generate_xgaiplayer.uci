@@ -350,6 +350,12 @@ simulated function GatherUnitsToMove()
         return;
     }
 
+    if (!class'DirectControlConfig'.static.PlayerControlsChosen() && UnitsToMoveIncludesChosen())
+    {
+        `DC_LOG("Chosen pods are not player-controlled, per user config");
+        return;
+    }
+
     `DC_LOG("GatherUnitsToMove: found " $ UnitsToMove.Length $ " potential units");
     UnitsToManuallyMove.Length = 0;
 
