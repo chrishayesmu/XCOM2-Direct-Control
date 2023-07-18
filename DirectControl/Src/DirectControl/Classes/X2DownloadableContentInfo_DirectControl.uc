@@ -20,8 +20,10 @@ static event OnPostTemplatesCreated()
 
 private static function ModifyBaseGameAbilities()
 {
+    local bool bPresent;
     local int Index;
     local X2Effect_GrantActionPoints ActionPointsEffect;
+    local X2Condition_Visibility VisibilityCondition;
     local X2AbilityTemplateManager AbilityMgr;
 	local X2AbilityTemplate Template;
 
@@ -47,7 +49,7 @@ private static function ModifyBaseGameAbilities()
 
     // Special ability which normally doesn't show, but should be accessible to players
     Template = AbilityMgr.FindAbilityTemplate('ChosenSummonFollowers');
-    Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_ShowIfAvailable;
+    Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_AlwaysShow;
 	Template.bDontDisplayInAbilitySummary = false;
     Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_advent_commandaura";
 
@@ -92,14 +94,52 @@ private static function ModifyBaseGameAbilities()
     Template.eAbilityIconBehaviorHUD = EAbilityIconBehavior_NeverShow;
     RemoveInputTriggersOfType(Template, 'X2AbilityTrigger_PlayerInput');
 
-    // Tracking Shot has a curious condition: it can't be used unless a certain amount of alien units are engaged.
-    // This AI restriction doesn't make sense for us, so we remove it.
-    // TODO: if the alien team isn't being controlled, this changes the Hunter's behavior
-    // TODO: we are temporarily hiding Tracking Shot. Normally the follow-up shot is fired by an AI routine,
-    // which obviously doesn't occur for us, so the ability is useless. Re-enable Tracking Shot when we find an alternative.
     Template = AbilityMgr.FindAbilityTemplate('TrackingShotMark');
-    Template.eAbilityIconBehaviorHUD = EAbilityIconBehavior_NeverShow;
-    RemoveShooterConditionsOfType(Template, 'X2Condition_BattleState');
+
+    // Don't Move A Muscle (internal name TrackingShotReversal) changes how Tracking Shot Mark works, making it compatible
+    // with Direct Control. Otherwise, we need to disable it.
+    if (class'DirectControlUtils'.static.IsModActive('TrackingShotReversal'))
+    {
+        bPresent = false;
+
+        // Tracking Shot Mark has no LoS requirement, so we need to add one; add a check in case this isn't
+        // the first time we're iterating templates
+	    for (Index = 0; Index < Template.AbilityTargetConditions.Length; Index++)
+        {
+            if (Template.AbilityTargetConditions[Index].IsA('X2Condition_Visibility') && X2Condition_Visibility(Template.AbilityTargetConditions[Index]).bRequireLOS)
+            {
+                bPresent = true;
+                break;
+            }
+        }
+
+        if (!bPresent)
+        {
+            VisibilityCondition = new class'X2Condition_Visibility';
+            VisibilityCondition.bRequireLOS = true;
+            Template.AbilityTargetConditions.AddItem(VisibilityCondition);
+        }
+
+        // We also make it a turn-ending action, since it makes no sense to set up for a shot and then move around, potentially losing LoS
+	    for (Index = 0; Index < Template.AbilityCosts.Length; Index++)
+        {
+            if (Template.AbilityCosts[Index].IsA('X2AbilityCost_ActionPoints'))
+            {
+                X2AbilityCost_ActionPoints(Template.AbilityCosts[Index]).bConsumeAllPoints = true;
+                break;
+            }
+        }
+    }
+    else
+    {
+        // Tracking Shot has a curious condition: it can't be used unless a certain amount of alien units are engaged.
+        // This AI restriction doesn't make sense for us, so we remove it.
+        // TODO: if the alien team isn't being controlled, this changes the Hunter's behavior
+        // TODO: we are temporarily hiding Tracking Shot. Normally the follow-up shot is fired by an AI routine,
+        // which obviously doesn't occur for us, so the ability is useless. Re-enable Tracking Shot when we find an alternative.
+        Template.eAbilityIconBehaviorHUD = EAbilityIconBehavior_NeverShow;
+        RemoveShooterConditionsOfType(Template, 'X2Condition_BattleState');
+    }
 
     /////////////////////////////////////////////
     // Chosen Warlock abilities
